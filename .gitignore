@@ -1,0 +1,24 @@
+# Backup files
+*.bak
+*~
+
+# Logs
+logs/*
+!logs/.gitkeep
+
+# Reports
+reports/*
+!reports/.gitkeep
+
+# Snapshots
+snapshots/*
+!snapshots/.gitkeep
+
+# VS Code
+.vscode/
+
+# Python
+__pycache__/
+
+# Vim
+*.swp
