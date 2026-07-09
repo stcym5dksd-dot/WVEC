@@ -13,35 +13,35 @@ show_dashboard() {
     echo "System Health"
     echo "-------------"
 
-    if [ -n "$ydb_dist" ]; then
+    if check_yottadb; then
         pass "YottaDB Environment"
     else
         fail "YottaDB Environment"
         failures=$((failures + 1))
     fi
 
-    if [ -f "$ydb_gbldir" ]; then
+    if check_globals; then
         pass "Global Directory"
     else
         fail "Global Directory"
         failures=$((failures + 1))
     fi
 
-    if [ -f "$HOME/wvbuild/VistA-Source/mumps.dat" ]; then
+    if check_database; then
         pass "Database File"
     else
         fail "Database File"
         failures=$((failures + 1))
     fi
 
-    if [ -d "$HOME/wvbuild/VistA-Source/r" ]; then
+    if check_routines; then
         pass "Routine Directory"
     else
         fail "Routine Directory"
         failures=$((failures + 1))
     fi
 
-    if [ -f "$HOME/wvec/config/wvec.conf" ]; then
+    if check_configuration; then
         pass "Configuration"
     else
         fail "Configuration"
@@ -55,10 +55,12 @@ show_dashboard() {
     else
         echo "Overall Status : FAIL ($failures issue(s))"
     fi
-echo
 
-show_taskman_status
+    echo
 
-echo
-pause
+    show_taskman_status
+    show_kernel_status
+
+    echo
+    pause
 }
