@@ -1,24 +1,18 @@
-# Backup files
-*.bak
-*~
+# Runtime files
+_ZTM*
+*.mje
+*.mjo
 
 # Logs
 logs/*
-!logs/.gitkeep
-
-# Reports
-reports/*
-!reports/.gitkeep
 
 # Snapshots
 snapshots/*
+
+# Reports
+reports/*
+
+# Keep directory placeholders
+!logs/.gitkeep
+!reports/.gitkeep
 !snapshots/.gitkeep
-
-# VS Code
-.vscode/
-
-# Python
-__pycache__/
-
-# Vim
-*.swp
