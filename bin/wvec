@@ -3,9 +3,8 @@ clear
 #
 # WorldVistA Engineering Console
 #
-
+source "$HOME/wvec/lib/common.sh"
 source /usr/local/etc/ydb_env_set
-
 export ydb_gbldir=$HOME/wvbuild/VistA-Source/gld/vista.gld
 
 export ydb_routines="$HOME/wvbuild/VistA-Source/o*($HOME/wvbuild/VistA-Source/r $HOME/.yottadb/r2.06_x86_64/r $HOME/.yottadb/r) $ydb_dist/libyottadbutil.so"
@@ -13,11 +12,7 @@ export ydb_routines="$HOME/wvbuild/VistA-Source/o*($HOME/wvbuild/VistA-Source/r 
 while true
 do
     clear
-
-    echo "======================================================"
-    echo "        WorldVistA Engineering Console"
-    echo "======================================================"
-    echo
+banner
     echo "YottaDB : $ydb_dist"
     echo "Global  : $ydb_gbldir"
     echo
