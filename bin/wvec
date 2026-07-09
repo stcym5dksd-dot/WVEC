@@ -1,0 +1,80 @@
+clear
+
+#
+# WorldVistA Engineering Console
+#
+
+source /usr/local/etc/ydb_env_set
+
+export ydb_gbldir=$HOME/wvbuild/VistA-Source/gld/vista.gld
+
+export ydb_routines="$HOME/wvbuild/VistA-Source/o*($HOME/wvbuild/VistA-Source/r $HOME/.yottadb/r2.06_x86_64/r $HOME/.yottadb/r) $ydb_dist/libyottadbutil.so"
+
+while true
+do
+    clear
+
+    echo "======================================================"
+    echo "        WorldVistA Engineering Console"
+    echo "======================================================"
+    echo
+    echo "YottaDB : $ydb_dist"
+    echo "Global  : $ydb_gbldir"
+    echo
+    echo "1) Start YDB"
+    echo "2) Display Environment"
+    echo "3) Verify Installation"
+    echo "4) Exit"
+    echo
+    read -p "Selection: " ans
+
+    case "$ans" in
+
+        1)
+            exec "$ydb_dist/mumps" -direct
+            ;;
+
+        2)
+            clear
+            echo
+            echo "===== Environment ====="
+            echo
+            echo "ydb_dist=$ydb_dist"
+            echo
+            echo "ydb_gbldir=$ydb_gbldir"
+            echo
+            echo "ydb_routines=$ydb_routines"
+            echo
+            read -p "Press ENTER to continue..."
+            ;;
+
+        3)
+            clear
+            echo
+            echo "Checking installation..."
+            echo
+
+            [ -f "$HOME/wvbuild/VistA-Source/mumps.dat" ] && echo "PASS  mumps.dat" || echo "FAIL  mumps.dat"
+
+            [ -f "$HOME/wvbuild/VistA-Source/gld/vista.gld" ] && echo "PASS  vista.gld" || echo "FAIL  vista.gld"
+
+            [ -d "$HOME/wvbuild/VistA-Source/r" ] && echo "PASS  routines directory" || echo "FAIL  routines directory"
+
+            echo
+            read -p "Press ENTER to continue..."
+            ;;
+
+        4)
+            echo "Goodbye."
+            exit 0
+            ;;
+
+        *)
+            echo
+            echo "Invalid selection."
+            sleep 2
+            ;;
+
+    esac
+
+done
