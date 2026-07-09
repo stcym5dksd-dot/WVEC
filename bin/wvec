@@ -4,8 +4,10 @@ clear
 # WorldVistA Engineering Console
 #
 source "$HOME/wvec/lib/common.sh"
+source "$HOME/wvec/lib/checks.sh"
 source "$HOME/wvec/lib/dashboard.sh"
 source "$HOME/wvec/lib/taskman.sh"
+source "$HOME/wvec/lib/kernel.sh"
 source /usr/local/etc/ydb_env_set
 export ydb_gbldir=$HOME/wvbuild/VistA-Source/gld/vista.gld
 
