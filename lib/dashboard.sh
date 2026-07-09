@@ -55,7 +55,10 @@ show_dashboard() {
     else
         echo "Overall Status : FAIL ($failures issue(s))"
     fi
+echo
 
-    echo
-    pause
+show_taskman_status
+
+echo
+pause
 }

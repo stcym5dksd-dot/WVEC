@@ -5,6 +5,7 @@ clear
 #
 source "$HOME/wvec/lib/common.sh"
 source "$HOME/wvec/lib/dashboard.sh"
+source "$HOME/wvec/lib/taskman.sh"
 source /usr/local/etc/ydb_env_set
 export ydb_gbldir=$HOME/wvbuild/VistA-Source/gld/vista.gld
 
