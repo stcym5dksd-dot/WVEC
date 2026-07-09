@@ -58,8 +58,11 @@ show_dashboard() {
 
     echo
 
+    echo
+
     show_taskman_status
     show_kernel_status
+    show_git_status
 
     echo
     pause
