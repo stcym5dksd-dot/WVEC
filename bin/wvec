@@ -4,6 +4,7 @@ clear
 # WorldVistA Engineering Console
 #
 source "$HOME/wvec/lib/common.sh"
+source "$HOME/wvec/lib/dashboard.sh"
 source /usr/local/etc/ydb_env_set
 export ydb_gbldir=$HOME/wvbuild/VistA-Source/gld/vista.gld
 
@@ -12,7 +13,7 @@ export ydb_routines="$HOME/wvbuild/VistA-Source/o*($HOME/wvbuild/VistA-Source/r 
 while true
 do
     clear
-banner
+show_dashboard
     echo "YottaDB : $ydb_dist"
     echo "Global  : $ydb_gbldir"
     echo
