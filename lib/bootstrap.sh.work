@@ -1,0 +1,24 @@
+#!/usr/bin/env bash
+#
+# WVEC Bootstrap
+#
+
+wvec_bootstrap() {
+
+    #
+    # WorldVistA Engineering Environment
+    #
+
+    export WVEC_ROOT="$HOME/wvec"
+
+    export VISTA_ROOT="$HOME/wvbuild/VistA-Source"
+
+    export ydb_dist="/usr/local/lib/yottadb/r206"
+
+    export ydb_gbldir="$VISTA_ROOT/gld/vista.gld"
+
+    export ydb_routines="$VISTA_ROOT/o*($VISTA_ROOT/r $HOME/.yottadb/r2.06_x86_64/r $HOME/.yottadb/r) $ydb_dist/libyottadbutil.so"
+
+    export PATH="$ydb_dist:$PATH"
+
+}
