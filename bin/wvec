@@ -1,8 +1,11 @@
-clear
+#!/usr/bin/env bash
 
 #
-# WorldVistA Engineering Console
+# WorldVistA Extended Engineering Console
 #
+
+clear
+
 source "$HOME/wvec/lib/common.sh"
 source "$HOME/wvec/lib/bootstrap.sh"
 source "$HOME/wvec/lib/checks.sh"
@@ -10,32 +13,34 @@ source "$HOME/wvec/lib/dashboard.sh"
 source "$HOME/wvec/lib/taskman.sh"
 source "$HOME/wvec/lib/kernel.sh"
 source "$HOME/wvec/lib/git.sh"
+source "$HOME/wvec/lib/doctor.sh"
+
 wvec_bootstrap
 
 while true
 do
     clear
 
+    show_dashboard
 
-show_dashboard
-
-echo
-
-echo "YottaDB : $ydb_dist"
-echo "Global  : $ydb_gbldir"
-echo
+    echo
+    echo "YottaDB : $ydb_dist"
+    echo "Global  : $ydb_gbldir"
+    echo
 
     echo "1) Start YDB"
     echo "2) Display Environment"
-    echo "3) Verify Installation"
-    echo "4) Exit"
+    echo "3) WVEC Doctor"
+    echo "4) Verify Installation"
+    echo "5) Exit"
     echo
+
     read -p "Selection: " ans
 
     case "$ans" in
 
         1)
-            exec "$ydb_dist/mumps" -direct
+            "$ydb_dist/mumps" -direct
             ;;
 
         2)
@@ -46,29 +51,31 @@ echo
             echo "ydb_dist=$ydb_dist"
             echo
             echo "ydb_gbldir=$ydb_gbldir"
-            echo
             echo "ydb_routines=$ydb_routines"
             echo
             read -p "Press ENTER to continue..."
             ;;
 
         3)
+            wvec_doctor
+            ;;
+
+        4)
             clear
             echo
             echo "Checking installation..."
             echo
 
             [ -f "$HOME/wvbuild/VistA-Source/mumps.dat" ] && echo "PASS  mumps.dat" || echo "FAIL  mumps.dat"
-
             [ -f "$HOME/wvbuild/VistA-Source/gld/vista.gld" ] && echo "PASS  vista.gld" || echo "FAIL  vista.gld"
-
             [ -d "$HOME/wvbuild/VistA-Source/r" ] && echo "PASS  routines directory" || echo "FAIL  routines directory"
 
             echo
             read -p "Press ENTER to continue..."
             ;;
 
-        4)
+        5)
+            echo
             echo "Goodbye."
             exit 0
             ;;
