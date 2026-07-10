@@ -16,3 +16,21 @@ reports/*
 !logs/.gitkeep
 !reports/.gitkeep
 !snapshots/.gitkeep
+# YottaDB object and error files
+*.mjo
+*.mje
+
+# Temporary work files
+*.work
+
+# Logs
+logs/*
+!logs/.gitkeep
+
+# Reports
+reports/*
+!reports/.gitkeep
+
+# Snapshots
+snapshots/*
+!snapshots/.gitkeep
