@@ -1,0 +1,39 @@
+#!/usr/bin/env bash
+#
+# WVEC Build Utility
+#
+
+set -e
+
+WVEC_ROOT="$HOME/wvec"
+SRC="$WVEC_ROOT/src/routines"
+DST="$HOME/wvbuild/VistA-Source/r"
+
+echo
+echo "=========================================="
+echo "      WVEC Build Utility"
+echo "=========================================="
+echo
+
+echo "Source      : $SRC"
+echo "Destination : $DST"
+echo
+
+count=0
+
+for routine in "$SRC"/*.m
+do
+    [ -f "$routine" ] || continue
+
+    base=$(basename "$routine")
+
+    cp "$routine" "$DST/$base"
+
+    printf "Installed %-20s\n" "$base"
+
+    count=$((count+1))
+done
+
+echo
+echo "$count routine(s) installed."
+echo
