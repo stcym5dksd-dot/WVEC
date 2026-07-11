@@ -15,10 +15,14 @@ source "$HOME/wvec/lib/kernel.sh"
 source "$HOME/wvec/lib/git.sh"
 source "$HOME/wvec/lib/doctor.sh"
 source "$HOME/wvec/lib/live.sh"
+source "$HOME/wvec/lib/workbench.sh"
 
-# Initialize the WVEC environment
+#
+# Initialize WVEC
+#
 wvec_bootstrap || {
-    echo "ERROR: Failed to initialize WVEC environment."
+    echo
+    echo "ERROR: Unable to initialize WVEC."
     exit 1
 }
 
@@ -37,7 +41,8 @@ do
     echo "2) Display Environment"
     echo "3) WVEC Doctor"
     echo "4) Verify Installation"
-    echo "5) Exit"
+    echo "5) Engineering Workbench (Experimental)"
+    echo "6) Exit"
     echo
 
     read -p "Selection: " ans
@@ -89,6 +94,10 @@ do
             ;;
 
         5)
+            wvec_workbench
+            ;;
+
+        6)
             echo
             echo "Goodbye."
             exit 0
