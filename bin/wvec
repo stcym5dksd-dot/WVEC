@@ -14,8 +14,13 @@ source "$HOME/wvec/lib/taskman.sh"
 source "$HOME/wvec/lib/kernel.sh"
 source "$HOME/wvec/lib/git.sh"
 source "$HOME/wvec/lib/doctor.sh"
+source "$HOME/wvec/lib/live.sh"
 
-wvec_bootstrap
+# Initialize the WVEC environment
+wvec_bootstrap || {
+    echo "ERROR: Failed to initialize WVEC environment."
+    exit 1
+}
 
 while true
 do
@@ -51,6 +56,7 @@ do
             echo "ydb_dist=$ydb_dist"
             echo
             echo "ydb_gbldir=$ydb_gbldir"
+            echo
             echo "ydb_routines=$ydb_routines"
             echo
             read -p "Press ENTER to continue..."
@@ -66,9 +72,17 @@ do
             echo "Checking installation..."
             echo
 
-            [ -f "$HOME/wvbuild/VistA-Source/mumps.dat" ] && echo "PASS  mumps.dat" || echo "FAIL  mumps.dat"
-            [ -f "$HOME/wvbuild/VistA-Source/gld/vista.gld" ] && echo "PASS  vista.gld" || echo "FAIL  vista.gld"
-            [ -d "$HOME/wvbuild/VistA-Source/r" ] && echo "PASS  routines directory" || echo "FAIL  routines directory"
+            [ -f "$HOME/wvbuild/VistA-Source/mumps.dat" ] \
+                && echo "PASS  mumps.dat" \
+                || echo "FAIL  mumps.dat"
+
+            [ -f "$HOME/wvbuild/VistA-Source/gld/vista.gld" ] \
+                && echo "PASS  vista.gld" \
+                || echo "FAIL  vista.gld"
+
+            [ -d "$HOME/wvbuild/VistA-Source/r" ] \
+                && echo "PASS  routines directory" \
+                || echo "FAIL  routines directory"
 
             echo
             read -p "Press ENTER to continue..."
