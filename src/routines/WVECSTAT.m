@@ -1,4 +1,3 @@
-```mumps
 WVECSTAT ; WorldVistA Engineering Console - Status Services
  ;;1.0;WORLDVISTA ENGINEERING CONSOLE;;
 
@@ -17,4 +16,3 @@ STATUS ;
  W "Status  : Framework Initialized"
  W !
  Q
-```

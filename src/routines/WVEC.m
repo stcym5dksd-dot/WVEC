@@ -1,38 +1,36 @@
-```mumps
 WVEC ; WorldVistA Engineering Console
- ;;1.0;WORLDVISTA ENGINEERING CONSOLE;;
+ ;;1.1;WORLDVISTA ENGINEERING CONSOLE;;
 
- ;------------------------------------------------------------------
- ; WorldVistA Engineering Console
- ;
- ; Developer:
- ;   Allan Steven Finkelstein
- ;
- ; Purpose:
- ;   Primary entry points for the WVEC package.
- ;
- ; This routine intentionally starts small. It provides package
- ; identification and service entry points that other routines will
- ; expand in future releases.
- ;------------------------------------------------------------------
+MENU ;
+ N X
 
+ F  D  Q:X=0
+ . W @IOF
+ . W !,"==============================================="
+ . W !,"      WorldVistA Engineering Console"
+ . W !,"==============================================="
+ . W !
+ . W !,"1  Engineering Doctor"
+ . W !,"2  Status"
+ . W !,"3  About"
+ . W !,"0  Exit"
+ . W !
+ . R "Select Option: ",X:300
+ . S:'$T X=0
+ . I X=1 D DOCTOR^WVECDOC Q
+ . I X=2 D STATUS^WVECSTAT Q
+ . I X=3 D ABOUT Q
+ . I X'=0 W !,"Invalid selection." H 2
  Q
 
-VERSION() ; Return package version
- Q "1.0"
-
-ABOUT ; Display package information
- W !!,"WorldVistA Engineering Console (WVEC)"
- W !,"Version: ",$$VERSION()
- W !,"Developer: Allan Steven Finkelstein"
- W !,"Platform : WorldVistA / YottaDB"
+ABOUT ;
+ W !!
+ W "WorldVistA Engineering Console (WVEC)",!
+ W "Version: ",$$VERSION(),!
+ W "Engineering Workbench for WorldVistA",!
+ W !
+ R "Press RETURN to continue...",X
  Q
 
-STATUS ; Initial engineering status
- W !!,"WVEC Engineering Status"
- W !,"-----------------------"
- W !,"Package : WorldVistA Engineering Console"
- W !,"Version : ",$$VERSION()
- W !,"Status  : Package framework initialized"
- Q
-```
+VERSION() ;
+ Q "1.1"

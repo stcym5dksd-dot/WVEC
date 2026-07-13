@@ -1,18 +1,18 @@
 #!/usr/bin/env bash
 #
-# WVEC Build Utility
+# WorldVistA Engineering Console Build Utility
 #
 
-set -e
+set -euo pipefail
 
 WVEC_ROOT="$HOME/wvec"
 SRC="$WVEC_ROOT/src/routines"
 DST="$HOME/wvbuild/VistA-Source/r"
 
 echo
-echo "=========================================="
-echo "      WVEC Build Utility"
-echo "=========================================="
+echo "======================================================"
+echo "           WVEC Build Utility"
+echo "======================================================"
 echo
 
 echo "Source      : $SRC"
@@ -27,13 +27,43 @@ do
 
     base=$(basename "$routine")
 
+    echo "Validating $base ..."
+
+    #
+    # Reject Markdown code fences
+    #
+    if grep -q '^```' "$routine"; then
+        echo
+        echo "ERROR: Markdown code fence found in $base"
+        echo "Remove any lines beginning with \`\`\` before building."
+        exit 1
+    fi
+
+    #
+    # Verify first line begins with the routine name
+    #
+    first=$(head -1 "$routine")
+    expected="${base%.m}"
+
+    case "$first" in
+        "$expected "*|"$expected;"*)
+            ;;
+        *)
+            echo
+            echo "ERROR: First line of $base does not begin with '$expected'"
+            echo "Found: $first"
+            exit 1
+            ;;
+    esac
+
     cp "$routine" "$DST/$base"
 
-    printf "Installed %-20s\n" "$base"
+    echo "Installed $base"
 
     count=$((count+1))
 done
 
 echo
-echo "$count routine(s) installed."
+echo "Installed $count routine(s)."
 echo
+echo "Build completed successfully."
