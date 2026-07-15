@@ -5,13 +5,16 @@ WVECGLOB ; WVEC Global Explorer ; Jul 2026
  ;
  ; Read-only Global Explorer
  ;
+ ; Version 1.1
+ ; Adds simple paging (25 nodes per page)
+ ;
  ;---------------------------------------------------------
  ;
  Q
  ;
 EN ; Main Entry Point
  ;
- N ROOT,SUB,COUNT
+ N ROOT,SUB,COUNT,PAGE,X,I
  S U="^"
  ;
  D BANNER^WVECUTIL("Global Explorer")
@@ -21,29 +24,42 @@ EN ; Main Entry Point
  ;
  S ROOT="^"_ROOT
  ;
- ; Does the global exist?
+ ; Verify global exists
  I '$D(@ROOT) D  Q
- . W !!,"Global not found."
+ . W !!
+ . W "Global not found."
  . W !!
  . D PAUSE^WVECUTIL
  ;
- W !!
- W "Top Level Nodes"
- W !!
- ;
- S COUNT=0
  S SUB=""
+ S COUNT=0
+ S PAGE=1
  ;
- F  S SUB=$O(@ROOT@(SUB)) Q:SUB=""  D  Q:COUNT'<25
- . S COUNT=COUNT+1
- . W !,$J(COUNT,3),". ",SUB
+ F  D  Q:SUB=""
+ . D BANNER^WVECUTIL("Global Explorer")
+ . W !,"Global : ",ROOT
+ . W !,"Page   : ",PAGE
+ . W !!
+ .
+ . F I=1:1:25 D  Q:SUB=""
+ . . S SUB=$O(@ROOT@(SUB))
+ . . Q:SUB=""
+ . . S COUNT=COUNT+1
+ . . W !,$J(COUNT,5),". ",SUB
+ .
+ . Q:SUB=""
+ .
+ . W !!
+ . R "Press ENTER for next page or '^' to quit: ",X
+ . I X="^" S SUB="" Q
+ . S PAGE=PAGE+1
  ;
  W !!
- W "Displayed ",COUNT," node(s)."
+ W "Total Nodes Displayed: ",COUNT
  W !!
  ;
  D PAUSE^WVECUTIL
  Q
  ;
 VERSION() ;
- Q "1.0"
+ Q "1.1"
