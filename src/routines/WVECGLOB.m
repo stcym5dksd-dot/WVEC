@@ -1,23 +1,14 @@
-WVECGLOB ; WVEC Global Explorer ; Jul 2026
- ;
- ;---------------------------------------------------------
- ; WorldVistA Engineering Console
- ;
- ; Read-only Global Explorer
- ;
- ; Version 1.1
- ; Adds simple paging (25 nodes per page)
- ;
- ;---------------------------------------------------------
- ;
+WVECGLOB ; WVEC Global Navigator ; Jul 2026
+ ;;3.0;WORLDVISTA ENGINEERING CONSOLE;;
+
  Q
- ;
+
 EN ; Main Entry Point
  ;
- N ROOT,SUB,COUNT,PAGE,X,I
+ N ROOT,SUB,COUNT,PAGE,X,I,ZERO,NAME
  S U="^"
  ;
- D BANNER^WVECUTIL("Global Explorer")
+ D BANNER^WVECUTIL("Global Navigator")
  ;
  R !,"Global (^): ^",ROOT
  Q:ROOT=""
@@ -26,9 +17,7 @@ EN ; Main Entry Point
  ;
  ; Verify global exists
  I '$D(@ROOT) D  Q
- . W !!
- . W "Global not found."
- . W !!
+ . W !!,"Global not found.",!!
  . D PAUSE^WVECUTIL
  ;
  S SUB=""
@@ -36,16 +25,26 @@ EN ; Main Entry Point
  S PAGE=1
  ;
  F  D  Q:SUB=""
- . D BANNER^WVECUTIL("Global Explorer")
+ . D BANNER^WVECUTIL("Global Navigator")
  . W !,"Global : ",ROOT
  . W !,"Page   : ",PAGE
  . W !!
+ . W "Subscript",?15,"Description"
+ . W !,"---------",?15,"------------------------------"
+ . W !
  .
  . F I=1:1:25 D  Q:SUB=""
  . . S SUB=$O(@ROOT@(SUB))
  . . Q:SUB=""
+ . .
  . . S COUNT=COUNT+1
- . . W !,$J(COUNT,5),". ",SUB
+ . . S ZERO=$G(@ROOT@(SUB,0))
+ . . S NAME=$P(ZERO,U)
+ . .
+ . . W $J(COUNT,4),". "
+ . . W SUB
+ . . I NAME'="" W ?15,NAME
+ . . W !
  .
  . Q:SUB=""
  .
@@ -55,11 +54,11 @@ EN ; Main Entry Point
  . S PAGE=PAGE+1
  ;
  W !!
- W "Total Nodes Displayed: ",COUNT
+ W "Total Entries Displayed: ",COUNT
  W !!
  ;
  D PAUSE^WVECUTIL
  Q
- ;
+
 VERSION() ;
- Q "1.1"
+ Q "3.0"
