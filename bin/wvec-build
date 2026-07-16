@@ -1,6 +1,8 @@
 #!/usr/bin/env bash
 #
-# WorldVistA Engineering Console Build Utility
+# WorldVistA Engineering Console
+# Build Utility
+# Version 1.0
 #
 
 set -euo pipefail
@@ -11,31 +13,36 @@ DST="$HOME/wvbuild/VistA-Source/r"
 
 echo
 echo "======================================================"
-echo "           WVEC Build Utility"
+echo "        WVEC Build Utility  Version 1.0"
 echo "======================================================"
 echo
-
 echo "Source      : $SRC"
 echo "Destination : $DST"
 echo
 
 count=0
+errors=0
+
+total=$(find "$SRC" -maxdepth 1 -name "*.m" | wc -l)
 
 for routine in "$SRC"/*.m
 do
     [ -f "$routine" ] || continue
 
-    base=$(basename "$routine")
+    count=$((count+1))
 
-    echo "Validating $base ..."
+    base=$(basename "$routine")
+    expected="${base%.m}"
+
+    printf "[%d/%d] %-20s " "$count" "$total" "$base"
 
     #
     # Reject Markdown code fences
     #
     if grep -q '^```' "$routine"; then
+        echo "FAILED"
         echo
         echo "ERROR: Markdown code fence found in $base"
-        echo "Remove any lines beginning with \`\`\` before building."
         exit 1
     fi
 
@@ -43,12 +50,12 @@ do
     # Verify first line begins with the routine name
     #
     first=$(head -1 "$routine")
-    expected="${base%.m}"
 
     case "$first" in
         "$expected "*|"$expected;"*)
             ;;
         *)
+            echo "FAILED"
             echo
             echo "ERROR: First line of $base does not begin with '$expected'"
             echo "Found: $first"
@@ -58,12 +65,15 @@ do
 
     cp "$routine" "$DST/$base"
 
-    echo "Installed $base"
-
-    count=$((count+1))
+    echo "OK"
 done
 
 echo
-echo "Installed $count routine(s)."
+echo "======================================================"
+echo "Build Summary"
+echo "======================================================"
+echo "Installed : $count routine(s)"
+echo "Errors    : $errors"
 echo
 echo "Build completed successfully."
+echo "======================================================"
