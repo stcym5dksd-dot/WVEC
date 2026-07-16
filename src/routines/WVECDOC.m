@@ -1,6 +1,5 @@
-WVECDOC ; WorldVistA Engineering Console - Doctor
- ;;1.0;WORLDVISTA ENGINEERING CONSOLE;;
-
+WVECDOC ; WVEC Documentation Browser
+ ;;3.1;WORLDVISTA ENGINEERING CONSOLE;;
 DOCTOR ;
  N VER
 

@@ -1,6 +1,5 @@
 WVECNAV ; WorldVistA Engineering Navigator
  ;;3.1;WORLDVISTA ENGINEERING CONSOLE;;
-
  ;
  ; Generic Read-Only Navigation Engine
  ;

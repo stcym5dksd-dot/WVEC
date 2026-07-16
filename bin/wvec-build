@@ -1,7 +1,7 @@
 #!/bin/bash
 #
 # wvec-build
-# WorldVista Engineering Console Build Utility
+# WorldVistA Engineering Console Build Utility
 #
 
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
@@ -10,6 +10,7 @@ SRC="$ROOT/src/routines"
 DEST="$HOME/wvbuild/VistA-Source/r"
 
 source "$ROOT/lib/compiler.sh"
+source "$ROOT/lib/validator.sh"
 
 MODE="${1:-build}"
 
@@ -32,16 +33,14 @@ build() {
 
         name=$(basename "$src")
 
+        #
+        # Validate source
+        #
         printf "%-20s" "$name"
 
-        #
-        # Verify first line matches filename
-        #
-        first=$(head -1 "$src" | cut -d' ' -f1)
-
-        if [ "$first" != "${name%.m}" ]
+        if ! validate_routine "$src"
         then
-            echo "INVALID ROUTINE NAME ($first)"
+            echo "VALIDATION FAILED"
             ((failed++))
             continue
         fi
@@ -62,7 +61,7 @@ build() {
         ((copied++))
 
         #
-        # Compile routine
+        # Compile installed routine
         #
         if compile_routine "$DEST/$name"
         then

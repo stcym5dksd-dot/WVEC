@@ -1,5 +1,5 @@
-WVECKIDS ; WVEC KIDS Explorer ; Jul 2026
- ;
+WVECKIDS ; WVEC KIDS Explorer
+ ;;3.1;WORLDVISTA ENGINEERING CONSOLE;;
  ;---------------------------------------------------------
  ; WorldVistA Engineering Console
  ;

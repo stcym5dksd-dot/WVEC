@@ -1,6 +1,5 @@
-WVECSTAT ; WorldVistA Engineering Console - Status Services
- ;;1.0;WORLDVISTA ENGINEERING CONSOLE;;
-
+WVECSTAT ; WVEC System Status
+ ;;3.1;WORLDVISTA ENGINEERING CONSOLE;;
  ;------------------------------------------------------------------
  ; Status Services
  ;------------------------------------------------------------------
