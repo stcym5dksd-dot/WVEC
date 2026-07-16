@@ -1,36 +1,24 @@
-# Runtime files
+# -----------------------------
+# YottaDB runtime files
+# -----------------------------
 _ZTM*
 *.mje
 *.mjo
+*.o
 
-# Logs
+# -----------------------------
+# Generated directories
+# -----------------------------
 logs/*
-
-# Snapshots
-snapshots/*
-
-# Reports
-reports/*
-
-# Keep directory placeholders
 !logs/.gitkeep
-!reports/.gitkeep
-!snapshots/.gitkeep
-# YottaDB object and error files
-*.mjo
-*.mje
 
-# Temporary work files
+reports/*
+!reports/.gitkeep
+
+snapshots/*
+!snapshots/.gitkeep
+
+# -----------------------------
+# Temporary files
+# -----------------------------
 *.work
-
-# Logs
-logs/*
-!logs/.gitkeep
-
-# Reports
-reports/*
-!reports/.gitkeep
-
-# Snapshots
-snapshots/*
-!snapshots/.gitkeep
