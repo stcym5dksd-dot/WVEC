@@ -2,7 +2,7 @@
 #
 # WorldVistA Engineering Console
 # Build Utility
-# Version 1.0
+# Version 1.1
 #
 
 set -euo pipefail
@@ -11,69 +11,131 @@ WVEC_ROOT="$HOME/wvec"
 SRC="$WVEC_ROOT/src/routines"
 DST="$HOME/wvbuild/VistA-Source/r"
 
-echo
-echo "======================================================"
-echo "        WVEC Build Utility  Version 1.0"
-echo "======================================================"
-echo
-echo "Source      : $SRC"
-echo "Destination : $DST"
-echo
+MODE="${1:-build}"
 
-count=0
-errors=0
+banner() {
+    echo
+    echo "======================================================"
+    echo "        WVEC Build Utility  Version 1.1"
+    echo "======================================================"
+    echo
+}
 
-total=$(find "$SRC" -maxdepth 1 -name "*.m" | wc -l)
+verify() {
 
-for routine in "$SRC"/*.m
-do
-    [ -f "$routine" ] || continue
+    banner
 
-    count=$((count+1))
+    echo "Verifying installed routines..."
+    echo
 
-    base=$(basename "$routine")
-    expected="${base%.m}"
+    total=0
+    missing=0
 
-    printf "[%d/%d] %-20s " "$count" "$total" "$base"
+    for routine in "$SRC"/*.m
+    do
+        [ -f "$routine" ] || continue
 
-    #
-    # Reject Markdown code fences
-    #
-    if grep -q '^```' "$routine"; then
-        echo "FAILED"
-        echo
-        echo "ERROR: Markdown code fence found in $base"
-        exit 1
+        base=$(basename "$routine")
+        total=$((total+1))
+
+        printf "%-20s " "$base"
+
+        if [ -f "$DST/$base" ]; then
+            echo "OK"
+        else
+            echo "MISSING"
+            missing=$((missing+1))
+        fi
+    done
+
+    echo
+    echo "======================================================"
+    echo "Verification Summary"
+    echo "======================================================"
+    echo "Verified : $total routine(s)"
+    echo "Missing  : $missing"
+    echo
+
+    if [ "$missing" -eq 0 ]; then
+        echo "Verification successful."
+    else
+        echo "Verification failed."
     fi
 
-    #
-    # Verify first line begins with the routine name
-    #
-    first=$(head -1 "$routine")
+    echo "======================================================"
+}
 
-    case "$first" in
-        "$expected "*|"$expected;"*)
-            ;;
-        *)
+build() {
+
+    banner
+
+    echo "Source      : $SRC"
+    echo "Destination : $DST"
+    echo
+
+    count=0
+    errors=0
+
+    total=$(find "$SRC" -maxdepth 1 -name "*.m" | wc -l)
+
+    for routine in "$SRC"/*.m
+    do
+        [ -f "$routine" ] || continue
+
+        count=$((count+1))
+
+        base=$(basename "$routine")
+        expected="${base%.m}"
+
+        printf "[%d/%d] %-20s " "$count" "$total" "$base"
+
+        if grep -q '^```' "$routine"; then
             echo "FAILED"
-            echo
-            echo "ERROR: First line of $base does not begin with '$expected'"
-            echo "Found: $first"
             exit 1
-            ;;
-    esac
+        fi
 
-    cp "$routine" "$DST/$base"
+        first=$(head -1 "$routine")
 
-    echo "OK"
-done
+        case "$first" in
+            "$expected "*|"$expected;"*)
+                ;;
+            *)
+                echo "FAILED"
+                echo
+                echo "ERROR: First line does not begin with '$expected'"
+                exit 1
+                ;;
+        esac
 
-echo
-echo "======================================================"
-echo "Build Summary"
-echo "======================================================"
-echo "Installed : $count routine(s)"
-echo "Errors    : $errors"
-echo
-echo "Build completed successfully."
-echo "======================================================"
+        cp "$routine" "$DST/$base"
+
+        echo "OK"
+    done
+
+    echo
+    echo "======================================================"
+    echo "Build Summary"
+    echo "======================================================"
+    echo "Installed : $count routine(s)"
+    echo "Errors    : $errors"
+    echo
+    echo "Build completed successfully."
+    echo "======================================================"
+}
+
+case "$MODE" in
+    build)
+        build
+        ;;
+    verify)
+        verify
+        ;;
+    *)
+        echo
+        echo "Usage:"
+        echo "  wvec-build"
+        echo "  wvec-build build"
+        echo "  wvec-build verify"
+        exit 1
+        ;;
+esac
