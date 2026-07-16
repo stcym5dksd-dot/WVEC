@@ -1,126 +1,131 @@
-#!/usr/bin/env bash
+#!/bin/bash
 #
-# WorldVistA Engineering Console
-# Build Utility
-# Version 1.1
+# wvec-build
+# WorldVista Engineering Console Build Utility
 #
 
-set -euo pipefail
+ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 
-WVEC_ROOT="$HOME/wvec"
-SRC="$WVEC_ROOT/src/routines"
-DST="$HOME/wvbuild/VistA-Source/r"
+SRC="$ROOT/src/routines"
+DEST="$HOME/wvbuild/VistA-Source/r"
+
+source "$ROOT/lib/compiler.sh"
 
 MODE="${1:-build}"
 
-banner() {
+build() {
+
+    copied=0
+    compiled=0
+    failed=0
+
+    echo "=========================================="
+    echo "      WVEC Build Utility"
+    echo "=========================================="
     echo
-    echo "======================================================"
-    echo "        WVEC Build Utility  Version 1.1"
-    echo "======================================================"
+
+    mkdir -p "$DEST"
+
+    for src in "$SRC"/*.m
+    do
+        [ -f "$src" ] || continue
+
+        name=$(basename "$src")
+
+        printf "%-20s" "$name"
+
+        #
+        # Verify first line matches filename
+        #
+        first=$(head -1 "$src" | cut -d' ' -f1)
+
+        if [ "$first" != "${name%.m}" ]
+        then
+            echo "INVALID ROUTINE NAME ($first)"
+            ((failed++))
+            continue
+        fi
+
+        #
+        # Copy routine
+        #
+        cp "$src" "$DEST/$name"
+
+        if [ $? -ne 0 ]
+        then
+            echo "COPY FAILED"
+            ((failed++))
+            continue
+        fi
+
+        echo "INSTALLED"
+        ((copied++))
+
+        #
+        # Compile routine
+        #
+        if compile_routine "$DEST/$name"
+        then
+            ((compiled++))
+        else
+            ((failed++))
+        fi
+
+    done
+
     echo
+    echo "=========================================="
+    echo "WVEC BUILD REPORT"
+    echo "=========================================="
+
+    printf "Copied      : %d\n" "$copied"
+    printf "Compiled    : %d\n" "$compiled"
+    printf "Failed      : %d\n" "$failed"
+
+    echo
+
+    if [ "$failed" -eq 0 ]
+    then
+        echo "BUILD STATUS : VERIFIED"
+    else
+        echo "BUILD STATUS : FAILED"
+        return 1
+    fi
 }
 
 verify() {
 
-    banner
-
-    echo "Verifying installed routines..."
+    echo "=========================================="
+    echo "WVEC Verification"
+    echo "=========================================="
     echo
 
-    total=0
     missing=0
 
-    for routine in "$SRC"/*.m
+    for src in "$SRC"/*.m
     do
-        [ -f "$routine" ] || continue
+        [ -f "$src" ] || continue
 
-        base=$(basename "$routine")
-        total=$((total+1))
+        name=$(basename "$src")
 
-        printf "%-20s " "$base"
-
-        if [ -f "$DST/$base" ]; then
-            echo "OK"
+        if [ -f "$DEST/$name" ]
+        then
+            printf "%-20s INSTALLED\n" "$name"
         else
-            echo "MISSING"
-            missing=$((missing+1))
+            printf "%-20s MISSING\n" "$name"
+            ((missing++))
         fi
     done
 
     echo
-    echo "======================================================"
-    echo "Verification Summary"
-    echo "======================================================"
-    echo "Verified : $total routine(s)"
-    echo "Missing  : $missing"
-    echo
 
-    if [ "$missing" -eq 0 ]; then
+    if [ "$missing" -eq 0 ]
+    then
         echo "Verification successful."
     else
-        echo "Verification failed."
+        echo "$missing routine(s) missing."
+        return 1
     fi
-
-    echo "======================================================"
-}
-
-build() {
-
-    banner
-
-    echo "Source      : $SRC"
-    echo "Destination : $DST"
-    echo
-
-    count=0
-    errors=0
-
-    total=$(find "$SRC" -maxdepth 1 -name "*.m" | wc -l)
-
-    for routine in "$SRC"/*.m
-    do
-        [ -f "$routine" ] || continue
-
-        count=$((count+1))
-
-        base=$(basename "$routine")
-        expected="${base%.m}"
-
-        printf "[%d/%d] %-20s " "$count" "$total" "$base"
-
-        if grep -q '^```' "$routine"; then
-            echo "FAILED"
-            exit 1
-        fi
-
-        first=$(head -1 "$routine")
-
-        case "$first" in
-            "$expected "*|"$expected;"*)
-                ;;
-            *)
-                echo "FAILED"
-                echo
-                echo "ERROR: First line does not begin with '$expected'"
-                exit 1
-                ;;
-        esac
-
-        cp "$routine" "$DST/$base"
-
-        echo "OK"
-    done
-
-    echo
-    echo "======================================================"
-    echo "Build Summary"
-    echo "======================================================"
-    echo "Installed : $count routine(s)"
-    echo "Errors    : $errors"
-    echo
-    echo "Build completed successfully."
-    echo "======================================================"
 }
 
 case "$MODE" in
@@ -131,7 +136,6 @@ case "$MODE" in
         verify
         ;;
     *)
-        echo
         echo "Usage:"
         echo "  wvec-build"
         echo "  wvec-build build"
