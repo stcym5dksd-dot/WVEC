@@ -1,5 +1,5 @@
 WVECNAV ; WorldVistA Engineering Navigator
- ;;3.0;WORLDVISTA ENGINEERING CONSOLE;;
+ ;;3.1;WORLDVISTA ENGINEERING CONSOLE;;
 
  ;
  ; Generic Read-Only Navigation Engine
@@ -12,30 +12,47 @@ WVECNAV ; WorldVistA Engineering Navigator
 
 EN(ROOT) ; Entry Point
  ;
- N PATH,SUB,COUNT,PAGE,X,I
+ N PATH,SEL,REF
  ;
  S PATH=ROOT
  ;
  F  D  Q:PATH=""
  . D DISPLAY(PATH)
- . R !,"Selection (Enter=Refresh,^=Exit): ",X
- . I X="^" S PATH="" Q
+ . W !
+ . R "Selection (Enter=Refresh,^=Exit,Subscript=Down): ",SEL
+ . ;
+ . I SEL="" Q
+ . I SEL="^" S PATH="" Q
+ . ;
+ . ; Build the reference
+ . S REF=PATH_"("_SEL_")"
+ . ;
+ . ; Temporary implementation for ^DIZ navigation.
+ . ; This will be generalized in the next version.
+ . I PATH="^DIZ",$D(^DIZ(SEL)) D  Q
+ . . S PATH="^DIZ("_SEL_")"
+ . ;
+ . W !,"Subscript not found."
+ . H 2
  ;
  Q
 
-
-DISPLAY(PATH) ;
+DISPLAY(PATH)
  ;
  N SUB,COUNT,ZERO,NAME
  ;
  D BANNER^WVECUTIL("Navigator")
  ;
- W !,"Current Path"
- W !,"------------"
- W !,PATH
+ W !
+ W "Current Path"
+ W !
+ W "------------"
+ W !
+ W PATH
  W !!
  W "Subscript",?15,"Description"
- W !,"---------",?15,"------------------------------"
+ W !
+ W "---------",?15,"------------------------------"
  W !
  ;
  S SUB=""
@@ -54,3 +71,6 @@ DISPLAY(PATH) ;
  W "Entries: ",COUNT
  ;
  Q
+
+VERSION() ;
+ Q "3.1"
