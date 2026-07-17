@@ -2,7 +2,7 @@ WVECNAV ; WorldVistA Engineering Navigator
  ;;5.0;WORLDVISTA ENGINEERING CONSOLE;;
  ;
  ; Generic Navigation Kernel
- ; Milestone 5.0.1
+ ; Milestone 5.0.2
  ;
 
 START(PROVIDER,ROOT) ;
@@ -13,10 +13,16 @@ START(PROVIDER,ROOT) ;
 
 INIT(CTX,PROVIDER,ROOT) ;
  K CTX
+
  S CTX("PROVIDER")=$G(PROVIDER)
+
  S CTX("ROOT")=$G(ROOT)
- S CTX("PATH")=$G(ROOT)
  S CTX("LEVEL")=0
+
+ K CTX("STACK")
+ S CTX("STACK",0)=CTX("ROOT")
+ S CTX("PATH")=CTX("STACK",0)
+
  S CTX("PAGE")=1
  S CTX("PAGESIZE")=25
  S CTX("QUIT")=0
@@ -44,14 +50,17 @@ DISPLAY(CTX,LIST,COUNT) ;
  NEW I,FIRST,LAST
 
  W @IOF
- W !,"==========================================="
- W !," ",CTX("TITLE")
- W !,"==========================================="
+ W !
+ W "==========================================="
+ W !
+ W " ",CTX("TITLE")
+ W !
+ W "==========================================="
  W !
  W "Path : ",CTX("PATH"),!
  W "Page : ",CTX("PAGE"),!
  W "Items: ",COUNT,!!
-
+ 
  S FIRST=((CTX("PAGE")-1)*CTX("PAGESIZE"))+1
  S LAST=FIRST+CTX("PAGESIZE")-1
  I LAST>COUNT S LAST=COUNT
@@ -137,4 +146,28 @@ PTOP(CTX) ;
  I CTX("PROVIDER")="WVECGLOB" D TOP^WVECGLOB(.CTX) Q
  I CTX("PROVIDER")="WVECRTN" D TOP^WVECRTN(.CTX) Q
  I CTX("PROVIDER")="WVECKIDS" D TOP^WVECKIDS(.CTX) Q
+ QUIT
+
+ ;
+ ; -------------------------------------------------
+ ; Navigation Stack Services
+ ; -------------------------------------------------
+ ;
+
+CURRENT(CTX) ;
+ Q $G(CTX("STACK",$G(CTX("LEVEL"))))
+
+PUSH(CTX,NEWPATH) ;
+ S CTX("LEVEL")=$G(CTX("LEVEL"))+1
+ S CTX("STACK",CTX("LEVEL"))=NEWPATH
+ S CTX("PATH")=NEWPATH
+ S CTX("PAGE")=1
+ QUIT
+
+POP(CTX) ;
+ I $G(CTX("LEVEL"))<1 QUIT
+ K CTX("STACK",CTX("LEVEL"))
+ S CTX("LEVEL")=CTX("LEVEL")-1
+ S CTX("PATH")=$G(CTX("STACK",CTX("LEVEL")))
+ S CTX("PAGE")=1
  QUIT
