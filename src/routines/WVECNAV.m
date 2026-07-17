@@ -1,5 +1,5 @@
 WVECNAV ; WorldVistA Engineering Navigator
- ;;3.1;WORLDVISTA ENGINEERING CONSOLE;;
+ ;;3.2;WORLDVISTA ENGINEERING CONSOLE;;
  ;
  ; Generic Read-Only Navigation Engine
  ;
@@ -72,4 +72,4 @@ DISPLAY(PATH)
  Q
 
 VERSION() ;
- Q "3.1"
+ Q "3.2"
