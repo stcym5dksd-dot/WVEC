@@ -1,75 +1,102 @@
 WVECNAV ; WorldVistA Engineering Navigator
- ;;3.3;WORLDVISTA ENGINEERING CONSOLE;;
+ ;;4.0;WORLDVISTA ENGINEERING CONSOLE;;
  ;
- ; Generic Read-Only Navigation Engine
+ ; Generic Navigation Engine
  ;
  ; Allan S. Finkelstein
  ; July 2026
  ;
+ ;=========================================================
  ;
- Q
+START(PROVIDER,ROOT) ;
  ;
-EN(ROOT) ; Entry Point
+ NEW DONE
+ NEW PATH
+ NEW LEVEL
  ;
- N PATH,SEL,MAP
+ SET DONE=0
+ SET PATH=$GET(ROOT)
+ SET LEVEL=0
  ;
- S PATH=ROOT
+ FOR  QUIT:DONE  DO
+ . DO DISPLAY(PROVIDER,PATH,LEVEL)
+ . DO COMMAND(.DONE,.PATH,.LEVEL)
  ;
- F  D  Q:PATH=""
- . K MAP
- . D DISPLAY(PATH,.MAP)
- . W !
- . R "Selection (Number,Enter,^): ",SEL
- . ;
- . I SEL="" Q
- . I SEL="^" S PATH="" Q
- . ;
- . I SEL?1.N,$D(MAP(SEL)) D  Q
- . . S PATH=$$BUILD(PATH,MAP(SEL))
- . ;
- . W !,"Invalid selection."
- . H 2
+ QUIT
  ;
- Q
+ ;=========================================================
+DISPLAY(PROVIDER,PATH,LEVEL) ;
  ;
-DISPLAY(PATH,MAP)
+ NEW LIST
+ NEW COUNT
  ;
- N SUB,COUNT,ZERO,NAME
+ KILL LIST
  ;
- D BANNER^WVECUTIL("Navigator")
+ DO GETLIST(PROVIDER,PATH,.LIST,.COUNT)
  ;
- W !
- W "Current Path"
- W !
- W "------------"
- W !
- W PATH
- W !!
- W "No.",?6,"Subscript",?25,"Description"
- W !
- W "---",?6,"---------",?25,"------------------------------"
- W !
+ WRITE !!
+ WRITE "===========================================",!
+ WRITE " WVEC Engineering Navigator 4.0",!
+ WRITE "===========================================",!
+ WRITE !
+ WRITE "Provider : ",PROVIDER,!
+ WRITE "Path     : ",PATH,!
+ WRITE "Level    : ",LEVEL,!
+ WRITE "Items    : ",COUNT,!
+ WRITE !
  ;
- S SUB=""
- S COUNT=0
+ DO RENDER(.LIST,COUNT)
  ;
- F  S SUB=$O(@PATH@(SUB)) Q:SUB=""  D
- . S COUNT=COUNT+1
- . S MAP(COUNT)=SUB
- . S ZERO=$G(@PATH@(SUB,0))
- . S NAME=$P(ZERO,U)
- . W $J(COUNT,3),". ",SUB
- . I NAME'="" W ?25,NAME
- . W !
+ QUIT
  ;
- W !!
- W "Entries: ",COUNT
- Q
+ ;=========================================================
+COMMAND(DONE,PATH,LEVEL) ;
  ;
-BUILD(PATH,SUB)
+ NEW X
  ;
- I SUB?1.N Q PATH_"("_SUB_")"
- Q PATH_"("""_SUB_""")"
+ WRITE !
+ WRITE "Select (Q,U,R,T or Number): "
+ READ X:300
+ WRITE !
  ;
-VERSION()
- Q "3.3"
+ IF X="Q" SET DONE=1 QUIT
+ ;
+ IF X="U" DO  QUIT
+ . IF LEVEL>0 SET LEVEL=LEVEL-1
+ ;
+ IF X="T" DO  QUIT
+ . SET LEVEL=0
+ ;
+ IF X="R" QUIT
+ ;
+ IF X?1N.N DO
+ . WRITE "Selection ",X," chosen.",!
+ ;
+ QUIT
+ ;
+ ;=========================================================
+GETLIST(PROVIDER,PATH,LIST,COUNT) ;
+ ;
+ NEW CMD
+ ;
+ SET COUNT=0
+ ;
+ SET CMD="DO LIST^"_PROVIDER_"("""_PATH_""",.LIST,.COUNT)"
+ X CMD
+ ;
+ QUIT
+ ;
+ ;=========================================================
+RENDER(LIST,COUNT) ;
+ ;
+ NEW I
+ ;
+ IF COUNT=0 DO  QUIT
+ . WRITE "(No entries)",!
+ ;
+ FOR I=1:1:COUNT DO
+ . WRITE $JUSTIFY(I,3),". ",LIST(I),!
+ ;
+ QUIT
+ ;
+ ;=========================================================
