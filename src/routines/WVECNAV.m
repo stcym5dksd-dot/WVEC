@@ -1,122 +1,140 @@
 WVECNAV ; WorldVistA Engineering Navigator
- ;;4.2;WORLDVISTA ENGINEERING CONSOLE;;
+ ;;5.0;WORLDVISTA ENGINEERING CONSOLE;;
  ;
- ; Generic Navigation Engine
+ ; Generic Navigation Kernel
+ ; Milestone 5.0.1
  ;
- ;=========================================================
-START(PROVIDER,PATH) ;
- ;
- NEW DONE,PAGE,PAGESIZE,COUNT,DIRTY,LEVEL
- NEW LIST
- ;
- SET DONE=0
- SET PAGE=1
- SET PAGESIZE=25
- SET LEVEL=0
- SET DIRTY=1
- ;
- FOR  QUIT:DONE  DO
- . IF DIRTY DO
- . . DO GETLIST(PROVIDER,PATH,.LIST,.COUNT)
- . . SET DIRTY=0
- . WRITE #
- . WRITE !,"=================================================="
- . WRITE !,"      WVEC Engineering Navigator 4.2"
- . WRITE !,"=================================================="
- . WRITE !!
- . WRITE "Provider : ",PROVIDER,!
- . WRITE "Path     : ",PATH,!
- . WRITE "Level    : ",LEVEL,!
- . WRITE "Items    : ",COUNT,!!
- . DO RENDER(.LIST,COUNT,PAGE,PAGESIZE)
- . DO COMMAND(.DONE,.PAGE,.DIRTY,.LEVEL,.PATH,.LIST,COUNT)
- ;
+
+START(PROVIDER,ROOT) ;
+ NEW CTX
+ DO INIT(.CTX,$GET(PROVIDER),$GET(ROOT))
+ DO MAIN(.CTX)
  QUIT
- ;
- ;=========================================================
-COMMAND(DONE,PAGE,DIRTY,LEVEL,PATH,LIST,COUNT) ;
- ;
- NEW X
- ;
- WRITE !
- WRITE "Commands: N P U R T Q or Number",!
- WRITE "Select: "
- READ X:300
- WRITE !
- ;
- SET X=$$UP^XLFSTR($GET(X))
- ;
- IF X="" QUIT
- ;
- IF X="Q" SET DONE=1 QUIT
- ;
- IF X="N" DO  QUIT
- . SET PAGE=PAGE+1
- ;
- IF X="P" DO  QUIT
- . IF PAGE>1 SET PAGE=PAGE-1
- ;
- IF X="R" DO  QUIT
- . SET DIRTY=1
- ;
- IF X="T" DO  QUIT
- . SET LEVEL=0
- . SET PAGE=1
- . SET DIRTY=1
- ;
- IF X="U" DO  QUIT
- . IF LEVEL>0 SET LEVEL=LEVEL-1
- . SET PAGE=1
- . SET DIRTY=1
- ;
- IF X?1.N DO  QUIT
- . IF X<1!(X>COUNT) DO  QUIT
- . . WRITE "Invalid selection.",!
- . . H 1
- . WRITE "Selection ",X,": ",$GET(LIST(X)),!
- . ; Navigation into child nodes will be added here.
- . H 1
- ;
- WRITE "Unknown command.",!
- H 1
+
+INIT(CTX,PROVIDER,ROOT) ;
+ K CTX
+ S CTX("PROVIDER")=$G(PROVIDER)
+ S CTX("ROOT")=$G(ROOT)
+ S CTX("PATH")=$G(ROOT)
+ S CTX("LEVEL")=0
+ S CTX("PAGE")=1
+ S CTX("PAGESIZE")=25
+ S CTX("QUIT")=0
+ S CTX("DIRTY")=1
+
+ DO PINIT(.CTX)
+ S CTX("TITLE")=$$PTITLE(.CTX)
+
  QUIT
- ;
- ;=========================================================
-GETLIST(PROVIDER,PATH,LIST,COUNT) ;
- ;
- NEW CMD
- ;
- KILL LIST
- SET COUNT=0
- ;
- SET CMD="DO LIST^"_PROVIDER_"("""_PATH_""",.LIST,.COUNT)"
- X CMD
- ;
+
+MAIN(CTX) ;
+ NEW LIST,COUNT,CMD
+
+ F  Q:CTX("QUIT")  D
+ . K LIST
+ . S COUNT=0
+ . D PLIST(.CTX,.LIST,.COUNT)
+ . D DISPLAY(.CTX,.LIST,COUNT)
+ . D READCMD(.CTX,.CMD)
+ . D PROCESS(.CTX,.CMD,.LIST,COUNT)
+
  QUIT
+
+DISPLAY(CTX,LIST,COUNT) ;
+ NEW I,FIRST,LAST
+
+ W @IOF
+ W !,"==========================================="
+ W !," ",CTX("TITLE")
+ W !,"==========================================="
+ W !
+ W "Path : ",CTX("PATH"),!
+ W "Page : ",CTX("PAGE"),!
+ W "Items: ",COUNT,!!
+
+ S FIRST=((CTX("PAGE")-1)*CTX("PAGESIZE"))+1
+ S LAST=FIRST+CTX("PAGESIZE")-1
+ I LAST>COUNT S LAST=COUNT
+
+ F I=FIRST:1:LAST D
+ . W $J(I,3)," ",$G(LIST(I)),!
+
+ W !
+ W "Commands: Number  N  P  U  T  R  Q",!
+ QUIT
+
+READCMD(CTX,CMD) ;
+ W !,"Select: "
+ R CMD:300
+ S CMD=$$UP^XLFSTR($G(CMD))
+ QUIT
+
+PROCESS(CTX,CMD,LIST,COUNT) ;
+ NEW MAXPAGE
+
+ I CMD="Q" S CTX("QUIT")=1 Q
+
+ S MAXPAGE=$S(COUNT<1:1,1:((COUNT-1)\CTX("PAGESIZE"))+1)
+
+ I CMD="N" D  Q
+ . I CTX("PAGE")<MAXPAGE S CTX("PAGE")=CTX("PAGE")+1
+
+ I CMD="P" D  Q
+ . I CTX("PAGE")>1 S CTX("PAGE")=CTX("PAGE")-1
+
+ I CMD="R" Q
+
+ I CMD="T" D PTOP(.CTX) Q
+
+ I CMD="U" D PUP(.CTX) Q
+
+ I CMD?1N.N D DOSELECT(.CTX,+CMD,.LIST) Q
+
+ QUIT
+
+DOSELECT(CTX,ITEM,LIST) ;
+ I '$D(LIST(ITEM)) QUIT
+ D PSELECT(.CTX,$G(LIST(ITEM)))
+ QUIT
+
  ;
- ;=========================================================
-RENDER(LIST,COUNT,PAGE,PAGESIZE) ;
+ ; -------------------------------------------------
+ ; Provider Dispatchers
+ ; -------------------------------------------------
  ;
- NEW FIRST,LAST,I,PAGES
- ;
- IF COUNT<1 DO  QUIT
- . WRITE "(No entries)",!
- ;
- SET PAGES=((COUNT-1)\PAGESIZE)+1
- ;
- IF PAGE<1 SET PAGE=1
- IF PAGE>PAGES SET PAGE=PAGES
- ;
- SET FIRST=((PAGE-1)*PAGESIZE)+1
- SET LAST=FIRST+PAGESIZE-1
- IF LAST>COUNT SET LAST=COUNT
- ;
- WRITE "Page ",PAGE," of ",PAGES,!
- WRITE "--------------------------------------------------",!
- ;
- FOR I=FIRST:1:LAST DO
- . WRITE $JUSTIFY(I,3),". ",$GET(LIST(I)),!
- ;
- WRITE "--------------------------------------------------",!
- ;
+
+PINIT(CTX) ;
+ I CTX("PROVIDER")="WVECGLOB" D INIT^WVECGLOB(.CTX) Q
+ I CTX("PROVIDER")="WVECRTN" D INIT^WVECRTN(.CTX) Q
+ I CTX("PROVIDER")="WVECKIDS" D INIT^WVECKIDS(.CTX) Q
+ QUIT
+
+PTITLE(CTX) ;
+ I CTX("PROVIDER")="WVECGLOB" Q $$TITLE^WVECGLOB(.CTX)
+ I CTX("PROVIDER")="WVECRTN" Q $$TITLE^WVECRTN(.CTX)
+ I CTX("PROVIDER")="WVECKIDS" Q $$TITLE^WVECKIDS(.CTX)
+ Q "WVEC Navigator"
+
+PLIST(CTX,LIST,COUNT) ;
+ I CTX("PROVIDER")="WVECGLOB" D LIST^WVECGLOB(.CTX,.LIST,.COUNT) Q
+ I CTX("PROVIDER")="WVECRTN" D LIST^WVECRTN(.CTX,.LIST,.COUNT) Q
+ I CTX("PROVIDER")="WVECKIDS" D LIST^WVECKIDS(.CTX,.LIST,.COUNT) Q
+ QUIT
+
+PSELECT(CTX,ITEM) ;
+ I CTX("PROVIDER")="WVECGLOB" D SELECT^WVECGLOB(.CTX,ITEM) Q
+ I CTX("PROVIDER")="WVECRTN" D SELECT^WVECRTN(.CTX,ITEM) Q
+ I CTX("PROVIDER")="WVECKIDS" D SELECT^WVECKIDS(.CTX,ITEM) Q
+ QUIT
+
+PUP(CTX) ;
+ I CTX("PROVIDER")="WVECGLOB" D UP^WVECGLOB(.CTX) Q
+ I CTX("PROVIDER")="WVECRTN" D UP^WVECRTN(.CTX) Q
+ I CTX("PROVIDER")="WVECKIDS" D UP^WVECKIDS(.CTX) Q
+ QUIT
+
+PTOP(CTX) ;
+ I CTX("PROVIDER")="WVECGLOB" D TOP^WVECGLOB(.CTX) Q
+ I CTX("PROVIDER")="WVECRTN" D TOP^WVECRTN(.CTX) Q
+ I CTX("PROVIDER")="WVECKIDS" D TOP^WVECKIDS(.CTX) Q
  QUIT
