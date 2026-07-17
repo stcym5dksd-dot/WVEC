@@ -9,16 +9,29 @@ ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 SRC="$ROOT/src/routines"
 DEST="$HOME/wvbuild/VistA-Source/r"
 REPORTDIR="$ROOT/reports"
+
+source "$ROOT/lib/environment.sh"
 source "$ROOT/lib/compiler.sh"
 source "$ROOT/lib/validator.sh"
 
 MODE="${1:-build}"
+
+#
+# Initialize the WVEC environment
+#
+if ! wvec_init
+then
+    echo
+    echo "WVEC initialization failed."
+    exit 1
+fi
 
 build() {
 
     copied=0
     compiled=0
     failed=0
+    validated=0
 
     echo "=========================================="
     echo "      WVEC Build Utility"
@@ -26,6 +39,7 @@ build() {
     echo
 
     mkdir -p "$DEST"
+    mkdir -p "$REPORTDIR"
 
     for src in "$SRC"/*.m
     do
@@ -33,17 +47,19 @@ build() {
 
         name=$(basename "$src")
 
-        #
-        # Validate source
-        #
         printf "%-20s" "$name"
 
+        #
+        # Validate routine
+        #
         if ! validate_routine "$src"
         then
             echo "VALIDATION FAILED"
             ((failed++))
             continue
         fi
+
+        ((validated++))
 
         #
         # Copy routine
@@ -77,43 +93,51 @@ build() {
     echo "WVEC BUILD REPORT"
     echo "=========================================="
 
-    printf "Copied      : %d\n" "$copied"
-    printf "Compiled    : %d\n" "$compiled"
-    printf "Failed      : %d\n" "$failed"
+    printf "Validated  : %d\n" "$validated"
+    printf "Copied     : %d\n" "$copied"
+    printf "Compiled   : %d\n" "$compiled"
+    printf "Failed     : %d\n" "$failed"
+
+    MANIFEST="$REPORTDIR/build-manifest.txt"
+
+    {
+        echo "=========================================="
+        echo "WVEC Build Manifest"
+        echo "=========================================="
+        echo
+        echo "Date       : $(date)"
+        echo "Branch     : $(git branch --show-current)"
+        echo "Commit     : $(git rev-parse --short HEAD)"
+        echo
+        echo "Validated  : $validated"
+        echo "Copied     : $copied"
+        echo "Compiled   : $compiled"
+        echo "Failed     : $failed"
+        echo
+        echo "Routines"
+        echo "--------"
+
+        for src in "$SRC"/*.m
+        do
+            basename "$src" .m
+        done
+
+        echo
+        if [ "$failed" -eq 0 ]
+        then
+            echo "Status     : VERIFIED"
+        else
+            echo "Status     : FAILED"
+        fi
+
+    } > "$MANIFEST"
 
     echo
-mkdir -p "$REPORTDIR"
+    echo "Build manifest written to:"
+    echo "  $MANIFEST"
 
-MANIFEST="$REPORTDIR/build-manifest.txt"
+    echo
 
-{
-echo "=========================================="
-echo "WVEC Build Manifest"
-echo "=========================================="
-echo
-echo "Date       : $(date)"
-echo "Branch     : $(git branch --show-current)"
-echo "Commit     : $(git rev-parse --short HEAD)"
-echo
-echo "Validated  : $copied"
-echo "Compiled   : $compiled"
-echo "Failed     : $failed"
-echo
-echo "Routines"
-echo "--------"
-
-for src in "$SRC"/*.m
-do
-    basename "$src" .m
-done
-
-echo
-echo "Status     : $( [ "$failed" -eq 0 ] && echo VERIFIED || echo FAILED )"
-
-} > "$MANIFEST"
-echo
-echo "Build manifest written to:"
-echo "  $MANIFEST"
     if [ "$failed" -eq 0 ]
     then
         echo "BUILD STATUS : VERIFIED"
