@@ -48,8 +48,8 @@ MAIN(CTX) ;
 
 DISPLAY(CTX,LIST,COUNT) ;
  NEW I,FIRST,LAST
-
- W @IOF
+ I $D(IOF) W @IOF
+ E  W #
  W !
  W "==========================================="
  W !

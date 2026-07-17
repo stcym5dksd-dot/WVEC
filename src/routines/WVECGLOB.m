@@ -1,12 +1,11 @@
-WVECGLOB ; WorldVistA Global Explorer
- ;;4.0;WORLDVISTA ENGINEERING CONSOLE;;
-
- ;---------------------------------------------------------------
- ; Global Explorer Provider for WVECNAV
- ;---------------------------------------------------------------
+WVECGLOB ; WorldVistA Global Explorer Provider
+ ;;5.0;WORLDVISTA ENGINEERING CONSOLE;;
+ ;
+ ; Provider for WVEC Navigation Kernel
+ ;
 
 EN ;
- N ROOT
+ NEW ROOT
 
  W !
  R "Global (^): ^",ROOT
@@ -14,49 +13,58 @@ EN ;
 
  S ROOT="^"_ROOT
 
- I '$D(@ROOT) W !,"Global not found." H 2 Q
+ I '$D(@ROOT) D  Q
+ . W !,"Global not found."
+ . H 2
 
  D START^WVECNAV("WVECGLOB",ROOT)
  Q
 
- ;
- ; ===== Provider Interface =====
- ;
+TITLE(CTX) ;
+ Q "WVEC Global Explorer"
 
-TITLE() ;
- Q "Global Explorer"
-
-INIT(ROOT,PATH) ;
- K PATH
- S PATH=ROOT
+INIT(CTX) ;
+ S CTX("ROOT")=$G(CTX("ROOT"))
+ S CTX("PATH")=$G(CTX("ROOT"))
+ S CTX("LEVEL")=0
  Q
 
-LIST(PATH,LIST,COUNT) ;
- N SUB
+LIST(CTX,LIST,COUNT) ;
+ NEW PATH,SUB
+
  K LIST
  S COUNT=0
 
+ S PATH=$G(CTX("PATH"))
+ Q:PATH=""
+
  S SUB=""
+
  F  S SUB=$O(@PATH@(SUB)) Q:SUB=""  D
  . S COUNT=COUNT+1
  . S LIST(COUNT)=SUB
 
  Q
 
-SELECT(PATH,ITEM) ;
- S PATH=PATH_"("_$S(ITEM?1.N:ITEM,1:""""_ITEM_"""")_")"
+SELECT(CTX,ITEM) ;
+ NEW NEWPATH
+
+ S NEWPATH=$G(CTX("PATH"))_"("_ITEM_")"
+
+ I '$D(@NEWPATH) Q
+
+ D PUSH^WVECNAV(.CTX,NEWPATH)
+
  Q
 
-UP(PATH,ROOT) ;
- I PATH=ROOT Q
- N X
- S X=PATH
- S X=$E(X,1,$L(X)-1)
- F  Q:X=""  Q:$E(X,$L(X))="("  S X=$E(X,1,$L(X)-1)
- I X'="" S PATH=$E(X,1,$L(X)-1)
- E  S PATH=ROOT
+UP(CTX) ;
+ D POP^WVECNAV(.CTX)
  Q
 
-TOP(PATH,ROOT) ;
- S PATH=ROOT
+TOP(CTX) ;
+ K CTX("STACK")
+ S CTX("LEVEL")=0
+ S CTX("STACK",0)=CTX("ROOT")
+ S CTX("PATH")=CTX("ROOT")
+ S CTX("PAGE")=1
  Q
