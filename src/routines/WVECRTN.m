@@ -1,55 +1,75 @@
-WVECRTN ; WVEC Routine Explorer
- ;;3.1;WORLDVISTA ENGINEERING CONSOLE;; ;---------------------------------------------------------
+WVECRTN ; WorldVistA Routine Provider
+ ;;5.1;WORLDVISTA ENGINEERING CONSOLE;;
+ ;
+ ;---------------------------------------------------------
  ; WorldVistA Engineering Console
  ;
- ; Read-only Routine Explorer
+ ; Routine Navigation Provider
  ;
- ; Version 1.0
+ ; Provider Interface
+ ;   TITLE()
+ ;   INIT()
+ ;   LIST()
+ ;   SELECT()
+ ;   UP()
+ ;   TOP()
  ;
+ ; Allan S. Finkelstein
+ ; July 2026
  ;---------------------------------------------------------
  ;
  Q
  ;
-EN ; Main Entry Point
+TITLE(CTX) ; Return screen title
+ I $G(CTX("MODE"))="MENU" Q "Routine Menu"
+ Q "Routine Explorer"
  ;
- N RTN,PATH,LINE,COUNT
- S U="^"
+INIT(CTX) ; Initialize provider
+ K CTX("STACK")
+ S CTX("LEVEL")=0
+ S CTX("MODE")="LIST"
+ S CTX("PAGE")=1
+ K CTX("ROUTINE")
+ Q
  ;
- D BANNER^WVECUTIL("Routine Explorer")
+LIST(CTX,LIST,COUNT) ; Build current list
+ K LIST
  ;
- R !,"Routine: ",RTN
- Q:RTN=""
+ I $G(CTX("MODE"))="LIST" D  Q
+ . S COUNT=5
+ . S LIST(1)="DI"
+ . S LIST(2)="DIC"
+ . S LIST(3)="DIE"
+ . S LIST(4)="XUP"
+ . S LIST(5)="XINDEX"
  ;
- ; Load the routine
- ZLINK RTN
+ I $G(CTX("MODE"))="MENU" D  Q
+ . S COUNT=3
+ . S LIST(1)="Header"
+ . S LIST(2)="Labels"
+ . S LIST(3)="Source"
  ;
- ; Read the first line
- S LINE=$TEXT(+1^@RTN)
+ S COUNT=0
+ Q
  ;
- I LINE="" D  Q
- . W !!,"Routine not found."
- . W !!
- . D PAUSE^WVECUTIL
+SELECT(CTX,ITEM) ; Process selection
+ I $G(CTX("MODE"))="LIST" D  Q
+ . S CTX("ROUTINE")=ITEM
+ . S CTX("MODE")="MENU"
  ;
- W !
- W "Routine : ",RTN
- W !
- W "First Line"
- W "----------"
- W !
- W LINE
- W !!
+ I $G(CTX("MODE"))="MENU" D  Q
+ . S CTX("ACTION")=ITEM
+ Q
  ;
- ; Count the number of lines
- S COUNT=1
- F  Q:$TEXT(+COUNT^@RTN)=""  S COUNT=COUNT+1
- S COUNT=COUNT-1
+UP(CTX) ; Navigate up
+ I $G(CTX("MODE"))="MENU" D
+ . S CTX("MODE")="LIST"
+ . K CTX("ROUTINE")
+ Q
  ;
- W "Total Lines : ",COUNT
- W !!
- ;
- D PAUSE^WVECUTIL
+TOP(CTX) ; Return to top
+ D INIT(.CTX)
  Q
  ;
 VERSION() ;
- Q "1.0"
+ Q "5.1"
