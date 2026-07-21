@@ -1,5 +1,5 @@
 WVECGLOB ; WorldVistA Global Explorer Provider
- ;;5.0;WORLDVISTA ENGINEERING CONSOLE;;
+ ;;5.2;WORLDVISTA ENGINEERING CONSOLE;;
  ;
  ; Provider for WVEC Navigation Kernel
  ;
@@ -25,7 +25,7 @@ TITLE(CTX) ;
 
 INIT(CTX) ;
  S CTX("ROOT")=$G(CTX("ROOT"))
- S CTX("PATH")=$G(CTX("ROOT"))
+ S CTX("PATH")=CTX("ROOT")
  S CTX("LEVEL")=0
  Q
 
@@ -39,7 +39,6 @@ LIST(CTX,LIST,COUNT) ;
  Q:PATH=""
 
  S SUB=""
-
  F  S SUB=$O(@PATH@(SUB)) Q:SUB=""  D
  . S COUNT=COUNT+1
  . S LIST(COUNT)=SUB
@@ -49,10 +48,13 @@ LIST(CTX,LIST,COUNT) ;
 SELECT(CTX,ITEM) ;
  NEW NEWPATH
 
- S NEWPATH=$G(CTX("PATH"))_"("_ITEM_")"
+ ; Build the next global reference using the utility library
+ S NEWPATH=$$APPENDSUB^WVECUTIL($G(CTX("PATH")),ITEM)
 
+ ; Verify the node exists
  I '$D(@NEWPATH) Q
 
+ ; Let the navigator manage navigation state
  D PUSH^WVECNAV(.CTX,NEWPATH)
 
  Q
