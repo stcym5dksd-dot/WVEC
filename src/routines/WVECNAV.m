@@ -1,173 +1,89 @@
 WVECNAV ; WorldVistA Engineering Navigator
- ;;5.0;WORLDVISTA ENGINEERING CONSOLE;;
+ ;;2.0;WORLDVISTA ENGINEERING CONSOLE;;
+
+ ;===============================================================
+ ; WVEC Navigation Controller
  ;
- ; Generic Navigation Kernel
- ; Milestone 5.0.2
- ;
+ ; Responsibilities:
+ ;   Initialize workspace
+ ;   Invoke provider
+ ;   Display screen
+ ;   Read commands
+ ;   Dispatch commands
+ ;===============================================================
 
-START(PROVIDER,ROOT) ;
- NEW CTX
- DO INIT(.CTX,$GET(PROVIDER),$GET(ROOT))
- DO MAIN(.CTX)
- QUIT
+START ;
+ D INIT^WVECWS
+ D BUILD^WVECGLOB
+ D MAIN
+ Q
 
-INIT(CTX,PROVIDER,ROOT) ;
- K CTX
+MAIN ;
+ N TYPE
 
- S CTX("PROVIDER")=$G(PROVIDER)
+ F  D  Q:TYPE="QUIT"
+ . D SHOW^WVECDSP
+ . D READ^WVECCMD
+ . S TYPE=$G(^TMP($J,"WVEC","CMD","TYPE"))
+ . D EXEC(TYPE)
 
- S CTX("ROOT")=$G(ROOT)
- S CTX("LEVEL")=0
+ Q
 
- K CTX("STACK")
- S CTX("STACK",0)=CTX("ROOT")
- S CTX("PATH")=CTX("STACK",0)
+EXEC(TYPE) ;
 
- S CTX("PAGE")=1
- S CTX("PAGESIZE")=25
- S CTX("QUIT")=0
- S CTX("DIRTY")=1
+ I TYPE="NEXT" D NEXT Q
+ I TYPE="PREV" D PREV Q
+ I TYPE="TOP" D TOP Q
+ I TYPE="UP" D UP Q
+ I TYPE="REFRESH" D REFRESH Q
+ I TYPE="SELECT" D SELECT Q
+ I TYPE="UNKNOWN" D UNKNOWN Q
 
- DO PINIT(.CTX)
- S CTX("TITLE")=$$PTITLE(.CTX)
+ Q
 
- QUIT
+SELECT ;
+ N NUM
 
-MAIN(CTX) ;
- NEW LIST,COUNT,CMD
+ S NUM=$G(^TMP($J,"WVEC","CMD","NUMBER"))
 
- F  Q:CTX("QUIT")  D
- . K LIST
- . S COUNT=0
- . D PLIST(.CTX,.LIST,.COUNT)
- . D DISPLAY(.CTX,.LIST,COUNT)
- . D READCMD(.CTX,.CMD)
- . D PROCESS(.CTX,.CMD,.LIST,COUNT)
+ D SELECT^WVECGLOB(NUM)
 
- QUIT
+ Q
 
-DISPLAY(CTX,LIST,COUNT) ;
- NEW I,FIRST,LAST
- I $D(IOF) W @IOF
- E  W #
- W !
- W "==========================================="
- W !
- W " ",CTX("TITLE")
- W !
- W "==========================================="
- W !
- W "Path : ",CTX("PATH"),!
- W "Page : ",CTX("PAGE"),!
- W "Items: ",COUNT,!!
- 
- S FIRST=((CTX("PAGE")-1)*CTX("PAGESIZE"))+1
- S LAST=FIRST+CTX("PAGESIZE")-1
- I LAST>COUNT S LAST=COUNT
+NEXT ;
+ W !!
+ W "*** NEXT PAGE (Not Implemented Yet) ***"
+ D PAUSE^WVECUTIL
+ Q
 
- F I=FIRST:1:LAST D
- . W $J(I,3)," ",$G(LIST(I)),!
+PREV ;
+ W !!
+ W "*** PREVIOUS PAGE (Not Implemented Yet) ***"
+ D PAUSE^WVECUTIL
+ Q
 
- W !
- W "Commands: Number  N  P  U  T  R  Q",!
- QUIT
+TOP ;
+ D BUILD^WVECGLOB
+ Q
 
-READCMD(CTX,CMD) ;
- W !,"Select: "
- R CMD:300
- S CMD=$$UP^XLFSTR($G(CMD))
- QUIT
+UP ;
+ D BUILD^WVECGLOB
+ Q
 
-PROCESS(CTX,CMD,LIST,COUNT) ;
- NEW MAXPAGE
+REFRESH ;
+ D BUILD^WVECGLOB
+ Q
 
- I CMD="Q" S CTX("QUIT")=1 Q
+UNKNOWN ;
+ W !!
+ W "Unknown command."
+ D PAUSE^WVECUTIL
+ Q
 
- S MAXPAGE=$S(COUNT<1:1,1:((COUNT-1)\CTX("PAGESIZE"))+1)
+TEST ;
+ D START
+ Q
 
- I CMD="N" D  Q
- . I CTX("PAGE")<MAXPAGE S CTX("PAGE")=CTX("PAGE")+1
-
- I CMD="P" D  Q
- . I CTX("PAGE")>1 S CTX("PAGE")=CTX("PAGE")-1
-
- I CMD="R" Q
-
- I CMD="T" D PTOP(.CTX) Q
-
- I CMD="U" D PUP(.CTX) Q
-
- I CMD?1N.N D DOSELECT(.CTX,+CMD,.LIST) Q
-
- QUIT
-
-DOSELECT(CTX,ITEM,LIST) ;
- I '$D(LIST(ITEM)) QUIT
- D PSELECT(.CTX,$G(LIST(ITEM)))
- QUIT
-
- ;
- ; -------------------------------------------------
- ; Provider Dispatchers
- ; -------------------------------------------------
- ;
-
-PINIT(CTX) ;
- I CTX("PROVIDER")="WVECGLOB" D INIT^WVECGLOB(.CTX) Q
- I CTX("PROVIDER")="WVECRTN" D INIT^WVECRTN(.CTX) Q
- I CTX("PROVIDER")="WVECKIDS" D INIT^WVECKIDS(.CTX) Q
- QUIT
-
-PTITLE(CTX) ;
- I CTX("PROVIDER")="WVECGLOB" Q $$TITLE^WVECGLOB(.CTX)
- I CTX("PROVIDER")="WVECRTN" Q $$TITLE^WVECRTN(.CTX)
- I CTX("PROVIDER")="WVECKIDS" Q $$TITLE^WVECKIDS(.CTX)
- Q "WVEC Navigator"
-
-PLIST(CTX,LIST,COUNT) ;
- I CTX("PROVIDER")="WVECGLOB" D LIST^WVECGLOB(.CTX,.LIST,.COUNT) Q
- I CTX("PROVIDER")="WVECRTN" D LIST^WVECRTN(.CTX,.LIST,.COUNT) Q
- I CTX("PROVIDER")="WVECKIDS" D LIST^WVECKIDS(.CTX,.LIST,.COUNT) Q
- QUIT
-
-PSELECT(CTX,ITEM) ;
- I CTX("PROVIDER")="WVECGLOB" D SELECT^WVECGLOB(.CTX,ITEM) Q
- I CTX("PROVIDER")="WVECRTN" D SELECT^WVECRTN(.CTX,ITEM) Q
- I CTX("PROVIDER")="WVECKIDS" D SELECT^WVECKIDS(.CTX,ITEM) Q
- QUIT
-
-PUP(CTX) ;
- I CTX("PROVIDER")="WVECGLOB" D UP^WVECGLOB(.CTX) Q
- I CTX("PROVIDER")="WVECRTN" D UP^WVECRTN(.CTX) Q
- I CTX("PROVIDER")="WVECKIDS" D UP^WVECKIDS(.CTX) Q
- QUIT
-
-PTOP(CTX) ;
- I CTX("PROVIDER")="WVECGLOB" D TOP^WVECGLOB(.CTX) Q
- I CTX("PROVIDER")="WVECRTN" D TOP^WVECRTN(.CTX) Q
- I CTX("PROVIDER")="WVECKIDS" D TOP^WVECKIDS(.CTX) Q
- QUIT
-
- ;
- ; -------------------------------------------------
- ; Navigation Stack Services
- ; -------------------------------------------------
- ;
-
-CURRENT(CTX) ;
- Q $G(CTX("STACK",$G(CTX("LEVEL"))))
-
-PUSH(CTX,NEWPATH) ;
- S CTX("LEVEL")=$G(CTX("LEVEL"))+1
- S CTX("STACK",CTX("LEVEL"))=NEWPATH
- S CTX("PATH")=NEWPATH
- S CTX("PAGE")=1
- QUIT
-
-POP(CTX) ;
- I $G(CTX("LEVEL"))<1 QUIT
- K CTX("STACK",CTX("LEVEL"))
- S CTX("LEVEL")=CTX("LEVEL")-1
- S CTX("PATH")=$G(CTX("STACK",CTX("LEVEL")))
- S CTX("PAGE")=1
- QUIT
+ ;===============================================================
+ ; End of WVECNAV
+ ;===============================================================

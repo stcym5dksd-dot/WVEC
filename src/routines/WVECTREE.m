@@ -1,0 +1,135 @@
+WVECTREE ; WorldVistA Engineering Console Tree Manager
+ ;;1.4;WORLDVISTA ENGINEERING CONSOLE;;
+
+ ;=============================================================
+ ; WVECTREE
+ ;
+ ; Maintains navigation state for hierarchical browsers.
+ ;
+ ; Public API
+ ;   INIT
+ ;   OPEN(ROOT)
+ ;   OPENNODE(SUB)
+ ;   CURRENT()
+ ;   LEVEL()
+ ;   ROOT()
+ ;   PATH()
+ ;   TOP
+ ;   POP
+ ;   SHOW
+ ;   TEST
+ ;
+ ;=============================================================
+
+ROOT() ;
+ Q $G(^TMP($J,"WVEC","TREE","ROOT"))
+
+CURRENT() ;
+ Q $G(^TMP($J,"WVEC","TREE","CURRENT"))
+
+LEVEL() ;
+ Q +$G(^TMP($J,"WVEC","TREE","LEVEL"))
+
+ROOTNAME() ;
+ Q $$ROOT()
+
+INIT ;
+ K ^TMP($J,"WVEC","TREE")
+ Q
+
+OPEN(ROOT) ;
+ ;
+ ; Open a new tree.
+ ;
+ D INIT
+ S ^TMP($J,"WVEC","TREE","ROOT")=ROOT
+ S ^TMP($J,"WVEC","TREE","LEVEL")=0
+ D UPDATE
+ Q
+
+OPENNODE(SUB) ;
+ ;
+ ; Public interface to descend one level.
+ ;
+ D PUSH(SUB)
+ Q
+
+PUSH(SUB) ;
+ N LVL
+
+ S LVL=$$LEVEL()+1
+ S ^TMP($J,"WVEC","TREE","PATH",LVL)=SUB
+ S ^TMP($J,"WVEC","TREE","LEVEL")=LVL
+
+ D UPDATE
+ Q
+
+POP ;
+ N LVL
+
+ S LVL=$$LEVEL()
+ Q:LVL=0
+
+ K ^TMP($J,"WVEC","TREE","PATH",LVL)
+ S ^TMP($J,"WVEC","TREE","LEVEL")=LVL-1
+
+ D UPDATE
+ Q
+
+TOP ;
+ K ^TMP($J,"WVEC","TREE","PATH")
+ S ^TMP($J,"WVEC","TREE","LEVEL")=0
+
+ D UPDATE
+ Q
+
+UPDATE ;
+ D SETCURR($$PATH())
+ Q
+
+SETCURR(REF) ;
+ S ^TMP($J,"WVEC","TREE","CURRENT")=REF
+ Q
+
+PATH() ;
+ N LVL,P,I
+
+ S LVL=$$LEVEL()
+
+ I LVL=0 Q $$ROOTNAME()
+
+ F I=1:1:LVL S P(I)=^TMP($J,"WVEC","TREE","PATH",I)
+
+ Q $$FORMAT^WVECREF($$ROOTNAME(),.P,LVL)
+
+SHOW ;
+ W !
+ W "Root    : ",$$ROOT(),!
+ W "Current : ",$$CURRENT(),!
+ W "Level   : ",$$LEVEL(),!
+ W "Path    : ",$$PATH(),!
+ Q
+
+TEST ;
+ D OPEN("^DIC")
+
+ W !!,"*** INITIAL ***"
+ D SHOW
+
+ W !!,"*** OPENNODE 4 ***"
+ D OPENNODE(4)
+ D SHOW
+
+ W !!,"*** OPENNODE ""B"" ***"
+ D OPENNODE("B")
+ D SHOW
+
+ W !!,"*** POP ***"
+ D POP
+ D SHOW
+
+ W !!,"*** TOP ***"
+ D TOP
+ D SHOW
+
+ Q

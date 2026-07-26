@@ -1,72 +1,80 @@
-WVECGLOB ; WorldVistA Global Explorer Provider
- ;;5.2;WORLDVISTA ENGINEERING CONSOLE;;
- ;
- ; Provider for WVEC Navigation Kernel
- ;
+WVECGLOB ; WorldVistA Engineering Global Provider
+ ;;2.0;WORLDVISTA ENGINEERING CONSOLE;;
 
-EN ;
- NEW ROOT
+ ;===============================================================
+ ; Global Explorer Provider
+ ;===============================================================
 
- W !
- R "Global (^): ^",ROOT
- Q:ROOT=""
-
- S ROOT="^"_ROOT
-
- I '$D(@ROOT) D  Q
- . W !,"Global not found."
- . H 2
-
- D START^WVECNAV("WVECGLOB",ROOT)
+BUILD ;
+ D ROOT
  Q
 
-TITLE(CTX) ;
- Q "WVEC Global Explorer"
+ROOT ;
+ D CLEARLIST
 
-INIT(CTX) ;
- S CTX("ROOT")=$G(CTX("ROOT"))
- S CTX("PATH")=CTX("ROOT")
- S CTX("LEVEL")=0
+ D ADD("^DIC","File Dictionary")
+ D ADD("^DD","Data Dictionary")
+ D ADD("^DPT","Patient File")
+ D ADD("^VA(200","New Person File")
+ D ADD("^XMB","MailMan")
+ D ADD("^XTMP","Temporary Globals")
+ D ADD("^TMP","Scratch Workspace")
+
+ S ^TMP($J,"WVEC","GLOB","ROOT")=""
+
  Q
 
-LIST(CTX,LIST,COUNT) ;
- NEW PATH,SUB
+SELECT(NUM) ;
+ N GLOB
 
- K LIST
- S COUNT=0
+ S GLOB=$$GETITEM^WVECWS(NUM,"NAME")
 
- S PATH=$G(CTX("PATH"))
- Q:PATH=""
+ I GLOB="" Q
+
+ S ^TMP($J,"WVEC","GLOB","ROOT")=GLOB
+
+ D LIST(GLOB)
+
+ Q
+
+LIST(GLOB) ;
+ N ROOT,SUB,CNT,REF
+
+ D CLEARLIST
+
+ S ROOT=$$ROOT^WVECWS()
+ S CNT=0
+
+ S REF=GLOB
+
+ I $E(REF,$L(REF))'="(" S REF=REF_"("
 
  S SUB=""
- F  S SUB=$O(@PATH@(SUB)) Q:SUB=""  D
- . S COUNT=COUNT+1
- . S LIST(COUNT)=SUB
+
+ F  S SUB=$O(@(REF_SUB_")")) Q:SUB=""  D
+ . S CNT=CNT+1
+ . D SETITEM^WVECWS(CNT,SUB,"Subscript")
+
+ D SETSTAT^WVECWS(GLOB)
 
  Q
 
-SELECT(CTX,ITEM) ;
- NEW NEWPATH
+CLEARLIST ;
+ D SETCNT^WVECWS(0)
+ K ^TMP($J,"WVEC","LIST")
+ Q
 
- ; Build the next global reference using the utility library
- S NEWPATH=$$APPENDSUB^WVECUTIL($G(CTX("PATH")),ITEM)
+ADD(NAME,DESC) ;
+ N CNT
 
- ; Verify the node exists
- I '$D(@NEWPATH) Q
+ S CNT=$$COUNT^WVECWS()+1
 
- ; Let the navigator manage navigation state
- D PUSH^WVECNAV(.CTX,NEWPATH)
+ D SETITEM^WVECWS(CNT,NAME,DESC)
 
  Q
 
-UP(CTX) ;
- D POP^WVECNAV(.CTX)
- Q
-
-TOP(CTX) ;
- K CTX("STACK")
- S CTX("LEVEL")=0
- S CTX("STACK",0)=CTX("ROOT")
- S CTX("PATH")=CTX("ROOT")
- S CTX("PAGE")=1
+TEST ;
+ D INIT^WVECWS
+ D BUILD
+ D SHOW^WVECDSP
  Q
