@@ -30,9 +30,39 @@ INIT(PROVIDER,CONTEXT) ;
  S ^TMP($J,ROOT,$$CONTEXT^WVECCON)=$G(CONTEXT)
  S ^TMP($J,ROOT,$$PAGE^WVECCON)=1
  S ^TMP($J,ROOT,$$DONE^WVECCON)=0
- D REFRESH
  Q
  ;
+REFRESH ;
+ ;
+ ;===============================================================
+ ; Refresh provider list
+ ;===============================================================
+ ;
+ N ROOT
+ N PROVIDER
+ N CONTEXT
+ N COUNT
+ N LIST
+ N I
+ ;
+ S ROOT=$$NAVROOT^WVECCON
+ ;
+ S PROVIDER=$G(^TMP($J,ROOT,$$PROVIDER^WVECCON))
+ S CONTEXT=$G(^TMP($J,ROOT,$$CONTEXT^WVECCON))
+ ;
+ K ^TMP($J,ROOT,$$LIST^WVECCON)
+ ;
+ K LIST
+ S COUNT=0
+ ;
+ X "D GETLIST^"_PROVIDER_"(CONTEXT,.LIST,.COUNT)"
+ ;
+ F I=1:1:COUNT D
+ . S ^TMP($J,ROOT,$$LIST^WVECCON,I)=LIST(I)
+ ;
+ S ^TMP($J,ROOT,$$COUNT^WVECCON)=COUNT
+ ;
+ Q
 RUN ;
  F  D  Q:$$DONE()
  . D RENDER
@@ -43,9 +73,6 @@ CLEANUP ;
  K ^TMP($J,$$NAVROOT^WVECCON)
  Q
  ;
-REFRESH ;
- ; Implement next
- Q
  ;
 RENDER ;
  ; Implement next
