@@ -1,99 +1,88 @@
 WVECRTN ; WorldVistA Routine Explorer Provider
- ;;5.2;WORLDVISTA ENGINEERING CONSOLE;;
+ ;;1.1;WORLDVISTA ENGINEERING CONSOLE;;
  ;
- ;---------------------------------------------------------
- ; WorldVistA Engineering Console
+ ;===============================================================
+ ; Component : Routine Explorer Provider
+ ; Purpose   : Enumerate M routines for WVEC Navigator
+ ;===============================================================
  ;
- ; Routine Navigation Provider
- ;
- ; Provider Interface
- ;   EN
- ;   TITLE()
- ;   INIT()
- ;   LIST()
- ;   SELECT()
- ;   UP()
- ;   TOP()
- ;
- ; Allan S. Finkelstein
- ; July 2026
- ;---------------------------------------------------------
- ;
-EN ; Launch Routine Explorer
- NEW ROOT
- S ROOT=""
- D START^WVECNAV("WVECRTN",ROOT)
+
+EN ;
+ D START^WVECNAV("WVECRTN","")
  Q
- ;
-TITLE(CTX) ; Return screen title
- I $G(CTX("MODE"))="MENU" Q "Routine Menu"
+
+TITLE(CTX) ;
  Q "Routine Explorer"
- ;
-INIT(CTX) ; Initialize provider
- K CTX("STACK")
- S CTX("LEVEL")=0
- S CTX("MODE")="LIST"
- S CTX("PAGE")=1
+
+INIT(CTX) ;
  K CTX("ROUTINE")
+ S CTX("PAGE")=1
  Q
+
+LIST(CTX,LIST,COUNT) ;
  ;
-LIST(CTX,LIST,COUNT) ; Build current list
- NEW RTN
+ N RTNDIR,PATTERN,FILE,NAME
 
  K LIST
  S COUNT=0
 
- I $G(CTX("MODE"))="LIST" D  Q
- . S RTN=""
- . F  S RTN=$O(^DIC(9.8,"B",RTN)) Q:RTN=""  D
+ ; Obtain routine directory
+ S RTNDIR=$$RTNDIR^%ZOSV()
+
+ ; Enumerate every M routine
+ S PATTERN=RTNDIR_"*.m"
+
+ S FILE=$ZSEARCH(PATTERN)
+
+ F  Q:FILE=""  D
+ . S NAME=$$NAME(FILE)
+ . I NAME'="" D
  . . S COUNT=COUNT+1
- . . S LIST(COUNT)=RTN
+ . . S LIST(COUNT)=NAME
+ . S FILE=$ZSEARCH(PATTERN)
 
- I $G(CTX("MODE"))="MENU" D
- . S COUNT=4
- . S LIST(1)="First Line"
- . S LIST(2)="Entry Points"
- . S LIST(3)="Routine Size"
- . S LIST(4)="Back"
  Q
- ;
-SELECT(CTX,ITEM) ; Handle selection
- I $G(CTX("MODE"))="LIST" D  Q
- . S CTX("ROUTINE")=ITEM
- . S CTX("MODE")="MENU"
- . D PUSH^WVECNAV(.CTX,ITEM)
 
- I ITEM="Back" D  Q
- . D POP^WVECNAV(.CTX)
- . S CTX("MODE")="LIST"
-
- I ITEM="First Line" D
- . W !!,$T(@CTX("ROUTINE"))
- . R !!,"Press ENTER to continue...",X
- . Q
-
- I ITEM="Entry Points" D
- . W !!,"Entry point display not yet implemented."
- . R !!,"Press ENTER to continue...",X
- . Q
-
- I ITEM="Routine Size" D
- . W !!,"Routine statistics not yet implemented."
- . R !!,"Press ENTER to continue...",X
- . Q
+SELECT(CTX,ITEM) ;
+ S CTX("ROUTINE")=ITEM
  Q
- ;
-UP(CTX) ; Navigate up
- I $G(CTX("MODE"))="MENU" D
- . D POP^WVECNAV(.CTX)
- . S CTX("MODE")="LIST"
+
+UP(CTX) ;
+ K CTX("ROUTINE")
  Q
- ;
-TOP(CTX) ; Return to top
- K CTX("STACK")
- S CTX("LEVEL")=0
- S CTX("MODE")="LIST"
+
+TOP(CTX) ;
  K CTX("ROUTINE")
  S CTX("PAGE")=1
  Q
+
+NAME(FILE) ;
  ;
+ ; Return routine name from a pathname
+ ;
+ N X
+
+ S X=FILE
+
+ ; Remove directory
+ F  Q:X'["/"  S X=$P(X,"/",2,999)
+
+ ; Remove extension
+ I X["." S X=$P(X,".",1)
+
+ Q X
+
+TEST ;
+ N CTX,LIST,COUNT,I
+
+ D LIST(.CTX,.LIST,.COUNT)
+
+ W !!,"Routine Count: ",COUNT,!!
+
+ F I=1:1:20 Q:'$D(LIST(I))  D
+ . W $J(I,4),"  ",LIST(I),!
+
+ Q
+
+VERSION() ;
+ Q "1.1"
