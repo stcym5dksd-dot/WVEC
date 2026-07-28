@@ -1,21 +1,37 @@
-#!/bin/bash
+#!/usr/bin/env bash
 #
 # compiler.sh
-# WVEC Compile and Verification Library
+# WVEC Build Compiler
 #
 
 compile_routine() {
+
     local routine="$1"
+    local name
+    local objdir
+    local logfile
 
-    printf "  %-20s" "$(basename "$routine")"
+    name=$(basename "$routine")
+    objdir="$HOME/wvbuild/VistA-Source/o"
+    logfile="/tmp/wvec_compile.log"
 
-    if yottadb "$routine" >/tmp/wvec_compile.log 2>&1
-    then
+    printf "  %-20s" "$name"
+
+    mkdir -p "$objdir"
+
+    rm -f "$objdir/${name%.m}.o"
+
+    "$ydb_dist/mumps" \
+        -object="$objdir/${name%.m}.o" \
+        "$routine" \
+        >"$logfile" 2>&1
+
+    if [[ -f "$objdir/${name%.m}.o" ]]; then
         echo "PASS"
         return 0
     else
         echo "FAIL"
-        cat /tmp/wvec_compile.log
+        cat "$logfile"
         return 1
     fi
 }

@@ -1,126 +1,134 @@
-WVECWS ; WorldVistA Engineering Workspace
- ;;1.1;WORLDVISTA ENGINEERING CONSOLE;;
+WVECWS ; WorldVistA Engineering Workspace Manager
+ ;;2.0;WORLDVISTA ENGINEERING CONSOLE;;
 
  ;===============================================================
- ; WVEC Workspace Manager
+ ; Component     : Workspace Manager
+ ; MVC Role      : MODEL SUPPORT
+ ; Specification : ES-007
  ;
- ; All temporary engineering information resides under:
+ ; Purpose:
+ ;     Own and manage the shared WVEC workspace.
  ;
- ;    ^TMP($J,"WVEC")
+ ; Owns:
+ ;     ^TMP($J,"WVEC")
  ;
- ; This routine owns the workspace definition.
+ ; Reads:
+ ;     Nothing
+ ;
+ ; Called By:
+ ;     WVECNAV
+ ;     WVECDSP
+ ;     WVECCMD
+ ;     Providers
  ;===============================================================
 
-ROOT() ; Return workspace root
+ROOT() ;
  Q $NA(^TMP($J,"WVEC"))
 
-INIT ; Initialize workspace
+INIT ;
  D CLEAR
-
- N ROOT
- S ROOT=$$ROOT()
-
- S @ROOT@("VERSION")=$$VERSION()
- S @ROOT@("STATUS")="READY"
-
- ; Navigation
- S @ROOT@("NAV","PAGE")=1
- S @ROOT@("NAV","PATH")=""
- S @ROOT@("NAV","SELECT")=0
-
- ; Empty list
- S @ROOT@("COUNT")=0
-
  Q
 
-CLEAR ; Delete entire workspace
+CLEAR ;
  K ^TMP($J,"WVEC")
  Q
 
-RESET ; Reset navigation only
- N ROOT
- S ROOT=$$ROOT()
+;===============================================================
+; View API
+;===============================================================
 
- K @ROOT@("NAV")
- K @ROOT@("LIST")
- K @ROOT@("COUNT")
+CLEARVIEW ;
+ K ^TMP($J,"WVEC","VIEW")
+ Q
 
- S @ROOT@("NAV","PAGE")=1
- S @ROOT@("NAV","PATH")=""
- S @ROOT@("NAV","SELECT")=0
- S @ROOT@("COUNT")=0
+SETTITLE(TITLE) ;
+ S ^TMP($J,"WVEC","VIEW","TITLE")=$G(TITLE)
+ Q
+
+SETSUB(SUBTITLE) ;
+ S ^TMP($J,"WVEC","VIEW","SUBTITLE")=$G(SUBTITLE)
+ Q
+
+SETSTATUS(TEXT) ;
+ S ^TMP($J,"WVEC","VIEW","STATUS")=$G(TEXT)
+ Q
+
+SETCOMMANDS(TEXT) ;
+ S ^TMP($J,"WVEC","VIEW","COMMANDS")=$G(TEXT)
+ Q
+
+SETHELP(TEXT) ;
+ S ^TMP($J,"WVEC","VIEW","HELP")=$G(TEXT)
+ Q
+
+;===============================================================
+; List API
+;===============================================================
+
+CLEARLIST ;
+ K ^TMP($J,"WVEC","LIST")
+ S ^TMP($J,"WVEC","COUNT")=0
+ Q
+
+ADDITEM(NUM,NAME,DESC,TYPE,DATA) ;
+ S ^TMP($J,"WVEC","LIST",NUM,"NAME")=$G(NAME)
+ S ^TMP($J,"WVEC","LIST",NUM,"DESC")=$G(DESC)
+ S ^TMP($J,"WVEC","LIST",NUM,"TYPE")=$G(TYPE)
+ S ^TMP($J,"WVEC","LIST",NUM,"DATA")=$G(DATA)
+
+ I NUM>$G(^TMP($J,"WVEC","COUNT")) D
+ . S ^TMP($J,"WVEC","COUNT")=NUM
 
  Q
 
-VERSION() ; Return workspace version
- Q "1.1"
-
-STATUS() ; Return workspace status
- Q $G(^TMP($J,"WVEC","STATUS"),"UNKNOWN")
-
-SETSTAT(STATUS) ; Set workspace status
- S ^TMP($J,"WVEC","STATUS")=$G(STATUS)
- Q
-
-COUNT() ; Return item count
+COUNT() ;
  Q +$G(^TMP($J,"WVEC","COUNT"))
 
-SETCNT(COUNT) ; Set item count
- S ^TMP($J,"WVEC","COUNT")=+$G(COUNT)
+;===============================================================
+; State API
+;===============================================================
+
+SETSTATE(NAME,VALUE) ;
+ S ^TMP($J,"WVEC","STATE",NAME)=VALUE
  Q
 
-SETITEM(NUM,NAME,DESC) ; Store one list item
- N ROOT
- S ROOT=$$ROOT()
+GETSTATE(NAME) ;
+ Q $G(^TMP($J,"WVEC","STATE",NAME))
 
- S @ROOT@("LIST",NUM,"NAME")=$G(NAME)
- S @ROOT@("LIST",NUM,"DESC")=$G(DESC)
+;===============================================================
+; Command API
+;===============================================================
 
- I NUM>+$G(@ROOT@("COUNT")) S @ROOT@("COUNT")=NUM
-
+SETCMD(TYPE,TEXT,NUMBER) ;
+ S ^TMP($J,"WVEC","CMD","TYPE")=$G(TYPE)
+ S ^TMP($J,"WVEC","CMD","TEXT")=$G(TEXT)
+ S ^TMP($J,"WVEC","CMD","NUMBER")=$G(NUMBER)
  Q
 
-GETITEM(NUM,FIELD) ; Return one field
- Q $G(^TMP($J,"WVEC","LIST",NUM,FIELD))
+;===============================================================
+; Compatibility API
+;===============================================================
 
-SHOW ; Display workspace summary
- N ROOT
-
- S ROOT=$$ROOT()
-
- W !!
- W "WVEC Workspace"
- W !
- W "=============="
- W !
- W "Version : ",$G(@ROOT@("VERSION"))
- W !
- W "Status  : ",$G(@ROOT@("STATUS"))
- W !
- W "Page    : ",$G(@ROOT@("NAV","PAGE"))
- W !
- W "Path    : ",$G(@ROOT@("NAV","PATH"))
- W !
- W "Select  : ",$G(@ROOT@("NAV","SELECT"))
- W !
- W "Items   : ",$G(@ROOT@("COUNT"))
- W !
-
+SETCNT(N) ;
+ S ^TMP($J,"WVEC","COUNT")=+N
  Q
 
-TEST ; Simple self test
+SETSTAT(TEXT) ;
+ D SETSTATUS(TEXT)
+ Q
+
+TEST ;
+
  D INIT
 
- D SETSTAT("TESTING")
+ D SETTITLE("Workspace Test")
+ D SETSUB("ES-007")
+ D SETSTATUS("Workspace initialized")
+ D SETCOMMANDS("Q Quit")
 
- D SETITEM(1,"FIRST","Item One")
- D SETITEM(2,"SECOND","Item Two")
- D SETITEM(3,"THIRD","Item Three")
-
- D SHOW
-
- W !
- W "Item 1 = ",$$GETITEM(1,"NAME")
+ D ADDITEM(1,"Item One","First Test Item","TEST")
+ D ADDITEM(2,"Item Two","Second Test Item","TEST")
+ D ADDITEM(3,"Item Three","Third Test Item","TEST")
 
  Q
 

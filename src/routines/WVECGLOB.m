@@ -1,80 +1,131 @@
-WVECGLOB ; WorldVistA Engineering Global Provider
- ;;2.0;WORLDVISTA ENGINEERING CONSOLE;;
+WVECGLOB ; WorldVistA Engineering Console Global Provider
+ ;;3.1;WORLDVISTA ENGINEERING CONSOLE;;
 
  ;===============================================================
- ; Global Explorer Provider
+ ; Component     : Global Provider
+ ; MVC Role      : Model / Provider
+ ;
+ ; Purpose:
+ ;   Populate the WVEC workspace with the contents of the
+ ;   current global node.
+ ;
+ ; Notes:
+ ;   - Never writes to the terminal.
+ ;   - Never reads keyboard input.
+ ;   - All workspace updates go through WVECWS.
  ;===============================================================
 
-BUILD ;
- D ROOT
+INIT ;
+ D OPEN^WVECTREE("^DIC")
+ D SETSTATE^WVECWS("PAGE",1)
+ D SETSTATE^WVECWS("PAGESIZE",25)
+ D LIST
  Q
 
-ROOT ;
- D CLEARLIST
+REFRESH ;
+ D LIST
+ Q
+LIST ;
+ N REF,SUB
+ N COUNT
+ N NODE
+ N TYPE
+ N VALUE
 
- D ADD("^DIC","File Dictionary")
- D ADD("^DD","Data Dictionary")
- D ADD("^DPT","Patient File")
- D ADD("^VA(200","New Person File")
- D ADD("^XMB","MailMan")
- D ADD("^XTMP","Temporary Globals")
- D ADD("^TMP","Scratch Workspace")
+ D CLEARLIST^WVECWS
 
- S ^TMP($J,"WVEC","GLOB","ROOT")=""
+ S REF=$$CURRENT^WVECTREE()
+
+ D SETTITLE^WVECWS("WVEC Global Browser")
+ D SETSUB^WVECWS("Globals")
+ D SETSTATUS^WVECWS("Current: "_REF)
+ D SETCOMMANDS^WVECWS("N P U T Q")
+
+ S SUB=""
+ S COUNT=0
+
+ F  S SUB=$O(@REF@(SUB)) Q:SUB=""  D
+ . S COUNT=COUNT+1
+ . S NODE=$$CHILD^WVECREF(REF,SUB)
+ . S TYPE=$D(@NODE)
+ . S VALUE=$G(@NODE)
+ . D ADDITEM^WVECWS(COUNT,SUB,VALUE,TYPE,NODE)
+
+ D SETSTATE^WVECWS("COUNT",COUNT)
+
+ Q
+NEXT ;
+ N PAGE,SIZE,COUNT
+
+ S PAGE=$$GETSTATE^WVECWS("PAGE")
+ I PAGE<1 S PAGE=1
+
+ S SIZE=$$GETSTATE^WVECWS("PAGESIZE")
+ I SIZE<1 S SIZE=25
+
+ S COUNT=$$GETSTATE^WVECWS("COUNT")
+
+ I PAGE*SIZE<COUNT D
+ . D SETSTATE^WVECWS("PAGE",PAGE+1)
+
+ Q
+
+PREV ;
+ N PAGE
+
+ S PAGE=$$GETSTATE^WVECWS("PAGE")
+
+ I PAGE>1 D
+ . D SETSTATE^WVECWS("PAGE",PAGE-1)
 
  Q
 
 SELECT(NUM) ;
- N GLOB
-
- S GLOB=$$GETITEM^WVECWS(NUM,"NAME")
-
- I GLOB="" Q
-
- S ^TMP($J,"WVEC","GLOB","ROOT")=GLOB
-
- D LIST(GLOB)
-
- Q
-
-LIST(GLOB) ;
- N ROOT,SUB,CNT,REF
-
- D CLEARLIST
+ N ROOT
+ N SUB
+ N TYPE
 
  S ROOT=$$ROOT^WVECWS()
- S CNT=0
 
- S REF=GLOB
+ S SUB=$G(@ROOT@("LIST",NUM,"NAME"))
+ Q:SUB=""
 
- I $E(REF,$L(REF))'="(" S REF=REF_"("
+ S TYPE=$G(@ROOT@("LIST",NUM,"TYPE"))
 
- S SUB=""
+ ; TYPE=1 means data node only (no descendants)
+ I TYPE=1 Q
 
- F  S SUB=$O(@(REF_SUB_")")) Q:SUB=""  D
- . S CNT=CNT+1
- . D SETITEM^WVECWS(CNT,SUB,"Subscript")
+ D OPENNODE^WVECTREE(SUB)
 
- D SETSTAT^WVECWS(GLOB)
+ D SETSTATE^WVECWS("PAGE",1)
+
+ D LIST
 
  Q
 
-CLEARLIST ;
- D SETCNT^WVECWS(0)
- K ^TMP($J,"WVEC","LIST")
+UP ;
+ D POP^WVECTREE
+
+ D SETSTATE^WVECWS("PAGE",1)
+
+ D LIST
+
  Q
 
-ADD(NAME,DESC) ;
- N CNT
+TOP ;
+ D TOP^WVECTREE
 
- S CNT=$$COUNT^WVECWS()+1
+ D SETSTATE^WVECWS("PAGE",1)
 
- D SETITEM^WVECWS(CNT,NAME,DESC)
+ D LIST
 
  Q
 
 TEST ;
- D INIT^WVECWS
- D BUILD
+ D INIT
  D SHOW^WVECDSP
  Q
+
+ ;===============================================================
+ ; End of WVECGLOB
+ ;===============================================================

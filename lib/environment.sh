@@ -17,25 +17,58 @@ wvec_init() {
     fi
 
     #
-    # Override with the WorldVistA database
+    # WorldVistA installation root
     #
-    export ydb_gbldir="$HOME/wvbuild/VistA-Source/gld/vista.gld"
+    export VISTA_ROOT="$HOME/wvbuild/VistA-Source"
+
+    #
+    # Use the WorldVistA global directory
+    #
+    export ydb_gbldir="$VISTA_ROOT/gld/vista.gld"
+
+    #
+    # Use the WVEC compiled object directory and source directory
+    #
+    export ydb_routines="$VISTA_ROOT/o*( $VISTA_ROOT/r ) $ydb_dist/utf8/libyottadbutil.so"
 
     #
     # Basic verification
     #
     if [ ! -f "$ydb_gbldir" ]; then
-        echo "ERROR: Global directory not found:"
-        echo "  $ydb_gbldir"
+        echo
+        echo "ERROR: WorldVistA global directory not found."
+        echo "Expected:"
+        echo "    $ydb_gbldir"
+        echo
         return 1
+    fi
+
+    #
+    # Verify routine directories
+    #
+    if [ ! -d "$VISTA_ROOT/o" ]; then
+        echo
+        echo "WARNING: Object directory missing:"
+        echo "    $VISTA_ROOT/o"
+        echo
+    fi
+
+    if [ ! -d "$VISTA_ROOT/r" ]; then
+        echo
+        echo "WARNING: Routine source directory missing:"
+        echo "    $VISTA_ROOT/r"
+        echo
     fi
 
     echo
     echo "=========================================="
-    echo "WVEC Environment Initialized"
+    echo "     WVEC Environment Initialized"
     echo "=========================================="
-    echo "YottaDB : $ydb_dist"
-    echo "Global  : $ydb_gbldir"
+    echo "YottaDB     : $ydb_dist"
+    echo "VISTA_ROOT  : $VISTA_ROOT"
+    echo "Globals     : $ydb_gbldir"
+    echo "Routines    : $ydb_routines"
+    echo "=========================================="
     echo
 
     return 0
