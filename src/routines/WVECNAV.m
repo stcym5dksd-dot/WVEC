@@ -36,7 +36,7 @@ EXPLORE(PROVIDER,ROOT) ;
  . SET COUNT=0
  . DO LIST(PROVIDER,.LIST,.COUNT)
  . SET TITLE=$$TITLE(PROVIDER)
- . DO DISPLAY(TITLE,.LIST,COUNT)
+ . DO DISPLAY(TITLE,.LIST,COUNT,PAGE,PAGESIZE)
  . READ !,"Selection (? for help): ",CMD:300
  . IF '$TEST SET DONE=1 QUIT
  . SET CMD=$$UP(CMD)
@@ -67,10 +67,10 @@ LIST(PROVIDER,LIST,COUNT)
 
  QUIT
 
-DISPLAY(TITLE,LIST,COUNT) ;
-
+DISPLAY(TITLE,LIST,COUNT,PAGE,PAGESIZE)
  NEW I
-
+ NEW FIRST
+ NEW LAST
  WRITE #                              ; Clear screen
 
  WRITE "==========================================",!
@@ -87,15 +87,25 @@ DISPLAY(TITLE,LIST,COUNT) ;
  . WRITE "Commands: Q Quit   ? Help",!
  . WRITE !
 
- FOR I=1:1:COUNT DO
- . WRITE $J(I,3),". ",LIST(I),!
+ S FIRST=((PAGE-1)*PAGESIZE)+1
 
+ S LAST=FIRST+PAGESIZE-1
+
+ IF LAST>COUNT S LAST=COUNT
+
+ FOR I=FIRST:1:LAST DO
+ . WRITE $J(I,3),". ",LIST(I),!
  WRITE !
  WRITE "------------------------------------------",!
- WRITE "Items: ",COUNT,!
+
+ IF COUNT>0 DO
+ . WRITE "Showing ",FIRST,"-",LAST," of ",COUNT,!
+
+ E  DO
+ . WRITE "Showing 0 of 0",!
+
  WRITE "Commands: Number  Q  ?  U  T",!
  WRITE !
-
  QUIT
 
 COMMAND(PROVIDER,DONE,CMD,LIST,COUNT)
@@ -133,7 +143,7 @@ HELP
  WRITE "?       Help",!
 
  QUIT
-PAGESIZE() ;
+PAGESIZE() ; Default number of items per page
 
  QUIT 25
 
