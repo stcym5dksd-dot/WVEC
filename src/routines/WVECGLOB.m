@@ -13,11 +13,20 @@ WVECGLOB ; WorldVistA Global Explorer
 EXPLORE(ROOT) ;
 
  NEW CURRENT
+ NEW LEVEL
+ NEW SUB
  NEW LIST
  NEW SEL
  NEW DONE
 
  S CURRENT=ROOT
+
+ ;
+ ; New navigation state.
+ ;
+ S LEVEL=0
+ K SUB
+
  S DONE=0
 
  F  Q:DONE  D
@@ -32,7 +41,6 @@ EXPLORE(ROOT) ;
  . S CURRENT=LIST(+SEL)
 
  Q
-
 
 HELP ;
 
