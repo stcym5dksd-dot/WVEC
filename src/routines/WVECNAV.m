@@ -1,63 +1,119 @@
 WVECNAV ; WorldVistA Engineering Navigator
- ;;5.0;WORLDVISTA ENGINEERING CONSOLE;;
+ ;;5.1;WORLDVISTA ENGINEERING CONSOLE;;
 
  ;===============================================================
- ; Published Entry Points
+ ; Generic Navigation Engine
  ;===============================================================
+
+ ; Provider API
  ;
- ; EXPLORE(PROVIDER,ROOT)
- ;     Generic navigation engine.
+ ;   INIT(ROOT)
+ ;   TITLE()
+ ;   LIST(.LIST,.COUNT)
+ ;   SELECT(ITEM)
+ ;   UP()
+ ;   TOP()
  ;
- ; HELP()
- ;     Display navigator help.
- ;
- ;===============================================================
- ; Internal Implementation
  ;===============================================================
 
 EXPLORE(PROVIDER,ROOT) ;
- ;
+
  NEW DONE
  NEW CMD
+ NEW TITLE
+ NEW COUNT
+ NEW LIST
+
+ DO INIT(PROVIDER,ROOT)
 
  SET DONE=0
 
  FOR  QUIT:DONE  DO
- . WRITE !!
- . WRITE "========================================",!
- . WRITE " WVEC Navigator",!
- . WRITE "========================================",!
- . WRITE "Provider : ",PROVIDER,!
- . WRITE "Root     : ",ROOT,!
- . WRITE !
- . READ "Command (? for help): ",CMD:300
+ . K LIST
+ . SET COUNT=0
+ . DO LIST(PROVIDER,.LIST,.COUNT)
+ . SET TITLE=$$TITLE(PROVIDER)
+ . DO DISPLAY(TITLE,.LIST,COUNT)
+ . READ !,"Selection (? for help): ",CMD:300
  . IF '$TEST SET DONE=1 QUIT
  . SET CMD=$$UP(CMD)
- . DO COMMAND(.DONE,CMD)
+ . DO COMMAND(PROVIDER,.DONE,CMD,.LIST,COUNT)
 
  QUIT
 
 
-HELP ;
- WRITE !!
- WRITE "WVEC Navigator",!
- WRITE "--------------",!
- WRITE "Q   Quit",!
- WRITE "?   Help",!
+INIT(PROVIDER,ROOT)
+
+ DO @("INIT^"_PROVIDER_"("""_ROOT_""")")
+
+ QUIT
+
+TITLE(PROVIDER)
+
+ NEW X
+
+ SET X=$TEXT(@("TITLE^"_PROVIDER))
+
+ IF X="" QUIT "Navigator"
+
+ QUIT $$@("TITLE^"_PROVIDER)
+
+LIST(PROVIDER,LIST,COUNT)
+
+ DO @("LIST^"_PROVIDER_"(.LIST,.COUNT)")
+
+ QUIT
+
+DISPLAY(TITLE,LIST,COUNT)
+
+ NEW I
+
+ WRITE # 
+ WRITE "========================================",!
+ WRITE " ",TITLE,!
+ WRITE "========================================",!!
+
+ IF COUNT=0 WRITE "<Empty>",! QUIT
+
+ FOR I=1:1:COUNT DO
+ . WRITE $J(I,3),". ",LIST(I),!
+
  QUIT
 
 
- ;===============================================================
- ; Internal Labels
- ;===============================================================
+COMMAND(PROVIDER,DONE,CMD,LIST,COUNT)
 
-COMMAND(DONE,CMD) ;
+ IF CMD="" SET DONE=1 QUIT
 
  IF CMD="Q" SET DONE=1 QUIT
 
  IF CMD="?" DO HELP QUIT
 
+ IF CMD="U" DO @("UP^"_PROVIDER) QUIT
+
+ IF CMD="T" DO @("TOP^"_PROVIDER) QUIT
+
+ IF CMD?1.N DO  QUIT
+ . IF CMD<1!(CMD>COUNT) D  QUIT
+ . . WRITE !,"Invalid selection."
+ . . H 1
+ . DO @("SELECT^"_PROVIDER_"("""_LIST(+CMD)_""")")
+
  WRITE !,"Unknown command."
+
+ QUIT
+
+
+HELP
+
+ WRITE !!
+ WRITE "WVEC Navigator",!
+ WRITE "--------------",!
+ WRITE "number  Select item",!
+ WRITE "U       Up one level",!
+ WRITE "T       Top",!
+ WRITE "Q       Quit",!
+ WRITE "?       Help",!
 
  QUIT
 
