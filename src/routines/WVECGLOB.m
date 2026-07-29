@@ -122,11 +122,6 @@ LIST(ROOT,LEVEL,SUB,LIST) ;
 
  S CURRENT=$$CURRENT(ROOT,LEVEL,.SUB)
 
- W !!
- W "Global Explorer",!
- W "Root: ",CURRENT,!!
- W "Children",!
- W "--------",!
 
  I CURRENT["(" D
  . S BASE=$E(CURRENT,1,$L(CURRENT)-1)_","
@@ -139,11 +134,7 @@ LIST(ROOT,LEVEL,SUB,LIST) ;
  F  S CHILD=$O(@(BASE_""""_CHILD_""""_")")) Q:CHILD=""  D
  . S COUNT=COUNT+1
  . S LIST(COUNT)=CHILD
- . W !,$J(COUNT,3),". ",CHILD
  . Q:COUNT=20
-
- I COUNT=0 W !,"<No children>"
-
  Q
 
 
