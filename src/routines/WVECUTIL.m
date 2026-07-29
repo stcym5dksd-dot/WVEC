@@ -1,8 +1,16 @@
 WVECUTIL ; WorldVistA Engineering Utility Library
- ;;1.0;WORLDVISTA ENGINEERING CONSOLE;;
+ ;;1.3;WORLDVISTA ENGINEERING CONSOLE;;
 
  ;===============================================================
- ; General utility routines
+ ; General Utility Library
+ ;
+ ; Published Entry Points:
+ ;   CLEAR
+ ;   LINE
+ ;   CENTER
+ ;   PAUSE
+ ;   VERSION()
+ ;   REF(ROOT,LEVEL,SUB)
  ;===============================================================
 
 CLEAR ; Clear ANSI terminal screen
@@ -23,11 +31,50 @@ CENTER(TEXT,WIDTH) ; Center TEXT within WIDTH columns
  W ?PAD,TEXT
  Q
 
-PAUSE ;
+PAUSE ; Wait for RETURN
  N X
  W !!,"Press RETURN to continue..."
  R X
  Q
 
-VERSION() ;
- Q "1.0"
+VERSION() ; Library version
+ Q "1.3"
+
+REF(ROOT,LEVEL,SUB) ; Build executable global reference
+ ;
+ ; ROOT  = "^DIC"
+ ; LEVEL = Number of subscripts
+ ; SUB() = Subscript array
+ ;
+ N REF,I,S
+
+ S REF=ROOT
+ I LEVEL=0 Q REF
+
+ S REF=REF_"("
+
+ F I=1:1:LEVEL D
+ . I I>1 S REF=REF_","
+ . S S=SUB(I)
+ . I $$ISNUM(S) S REF=REF_S Q
+ . S REF=REF_""""_S_""""
+
+ S REF=REF_")"
+
+ Q REF
+
+ISNUM(X) ; Return 1 if X should be emitted as numeric
+ ;
+ ; Handles:
+ ;   0
+ ;   123
+ ;   -5
+ ;   .11
+ ;   3.14159
+ ;
+ I X?1"-".N Q 1
+ I X?1"-".N1".".N Q 1
+ I X?1".".N Q 1
+ I X?1.N Q 1
+ I X?1.N1".".N Q 1
+ Q 0
