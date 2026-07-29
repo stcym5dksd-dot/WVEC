@@ -1,131 +1,67 @@
-WVECNAV ; WorldVistA Engineering Console Controller
- ;;3.0;WORLDVISTA ENGINEERING CONSOLE;;
+WVECNAV ; WorldVistA Engineering Navigator
+ ;;5.0;WORLDVISTA ENGINEERING CONSOLE;;
 
  ;===============================================================
- ; Component     : Controller
- ; MVC Role      : CONTROLLER
- ; Specification : ES-006
+ ; Published Entry Points
+ ;===============================================================
  ;
- ; Purpose:
- ;     Main application controller.
+ ; EXPLORE(PROVIDER,ROOT)
+ ;     Generic navigation engine.
+ ;
+ ; HELP()
+ ;     Display navigator help.
+ ;
+ ;===============================================================
+ ; Internal Implementation
  ;===============================================================
 
-START ;
- D INIT
- D MAIN
- Q
+EXPLORE(PROVIDER,ROOT) ;
+ ;
+ NEW DONE
+ NEW CMD
 
-INIT ;
- ; Initialize workspace
- D INIT^WVECWS
+ SET DONE=0
 
- ; Default renderer
- S ^TMP($J,"WVEC","ACTIVE")="WVECGLOB"
+ FOR  QUIT:DONE  DO
+ . WRITE !!
+ . WRITE "========================================",!
+ . WRITE " WVEC Navigator",!
+ . WRITE "========================================",!
+ . WRITE "Provider : ",PROVIDER,!
+ . WRITE "Root     : ",ROOT,!
+ . WRITE !
+ . READ "Command (? for help): ",CMD:300
+ . IF '$TEST SET DONE=1 QUIT
+ . SET CMD=$$UP(CMD)
+ . DO COMMAND(.DONE,CMD)
 
- ; Build initial model
- D REFRESH
+ QUIT
 
- Q
 
-MAIN ;
- N DONE
+HELP ;
+ WRITE !!
+ WRITE "WVEC Navigator",!
+ WRITE "--------------",!
+ WRITE "Q   Quit",!
+ WRITE "?   Help",!
+ QUIT
 
- S DONE=0
-
- F  Q:DONE  D
- . W !!,"*** ENTERING SHOW^WVECDSP ***",!
- . D SHOW^WVECDSP
- . W !,"*** RETURNED FROM SHOW^WVECDSP ***",!!
- . D READ^WVECCMD
- . D EXEC(.DONE)
-
- Q
-
-EXEC(DONE) ;
- N ROOT,TYPE
-
- S ROOT=$$ROOT^WVECWS()
- S TYPE=$G(@ROOT@("CMD","TYPE"))
-
- I TYPE="QUIT" S DONE=1 Q
-
- I TYPE="NEXT" D NEXT Q
- I TYPE="PREV" D PREV Q
- I TYPE="UP" D UP Q
- I TYPE="TOP" D TOP Q
- I TYPE="REFRESH" D REFRESH Q
-
- I TYPE="SELECT" D SELECT($G(@ROOT@("CMD","NUMBER"))) Q
-
- Q
-
-ACTIVE() ;
- Q $G(^TMP($J,"WVEC","ACTIVE"),"WVECGLOB")
-
-REFRESH ;
- N R
- S R=$$ACTIVE()
-
- I R="WVECGLOB" D REFRESH^WVECGLOB Q
- I R="WVECRTN" D REFRESH^WVECRTN Q
- I R="WVECKIDS" D REFRESH^WVECKIDS Q
-
- Q
-
-NEXT ;
- N R
- S R=$$ACTIVE()
-
- I R="WVECGLOB" D NEXT^WVECGLOB Q
- I R="WVECRTN" D NEXT^WVECRTN Q
- I R="WVECKIDS" D NEXT^WVECKIDS Q
-
- Q
-
-PREV ;
- N R
- S R=$$ACTIVE()
-
- I R="WVECGLOB" D PREV^WVECGLOB Q
- I R="WVECRTN" D PREV^WVECRTN Q
- I R="WVECKIDS" D PREV^WVECKIDS Q
-
- Q
-
-UP ;
- N R
- S R=$$ACTIVE()
-
- I R="WVECGLOB" D UP^WVECGLOB Q
- I R="WVECRTN" D UP^WVECRTN Q
- I R="WVECKIDS" D UP^WVECKIDS Q
-
- Q
-
-TOP ;
- N R
- S R=$$ACTIVE()
-
- I R="WVECGLOB" D TOP^WVECGLOB Q
- I R="WVECRTN" D TOP^WVECRTN Q
- I R="WVECKIDS" D TOP^WVECKIDS Q
-
- Q
-
-SELECT(NUM) ;
- N R
- S R=$$ACTIVE()
-
- I R="WVECGLOB" D SELECT^WVECGLOB(NUM) Q
- I R="WVECRTN" D SELECT^WVECRTN(NUM) Q
- I R="WVECKIDS" D SELECT^WVECKIDS(NUM) Q
-
- Q
-
-TEST ;
- D START
- Q
 
  ;===============================================================
- ; End of WVECNAV
+ ; Internal Labels
  ;===============================================================
+
+COMMAND(DONE,CMD) ;
+
+ IF CMD="Q" SET DONE=1 QUIT
+
+ IF CMD="?" DO HELP QUIT
+
+ WRITE !,"Unknown command."
+
+ QUIT
+
+
+UP(X)
+
+ QUIT $TR(X,"abcdefghijklmnopqrstuvwxyz","ABCDEFGHIJKLMNOPQRSTUVWXYZ")
