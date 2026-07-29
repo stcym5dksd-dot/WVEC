@@ -9,6 +9,68 @@ WVECGLOB ; WorldVistA Global Explorer
  ; HELP()
  ;
  ;===============================================================
+ ;===============================================================
+ ; Provider Interface
+ ;===============================================================
+
+INIT(ROOT) ;
+
+ S ^TMP($J,"WVECGLOB","ROOT")=ROOT
+ S ^TMP($J,"WVECGLOB","LEVEL")=0
+ K ^TMP($J,"WVECGLOB","SUB")
+
+ Q
+
+
+TITLE()
+
+ NEW ROOT
+ NEW LEVEL
+ NEW SUB
+ NEW I
+
+ S ROOT=$G(^TMP($J,"WVECGLOB","ROOT"))
+ S LEVEL=+$G(^TMP($J,"WVECGLOB","LEVEL"))
+
+ F I=1:1:LEVEL S SUB(I)=^TMP($J,"WVECGLOB","SUB",I)
+
+ Q $$REF^WVECUTIL(ROOT,LEVEL,.SUB)
+
+
+SELECT(VALUE)
+
+ NEW LEVEL
+
+ S LEVEL=+$G(^TMP($J,"WVECGLOB","LEVEL"))
+
+ S LEVEL=LEVEL+1
+
+ S ^TMP($J,"WVECGLOB","LEVEL")=LEVEL
+ S ^TMP($J,"WVECGLOB","SUB",LEVEL)=VALUE
+
+ Q
+
+
+UP
+
+ NEW LEVEL
+
+ S LEVEL=+$G(^TMP($J,"WVECGLOB","LEVEL"))
+
+ Q:LEVEL<1
+
+ K ^TMP($J,"WVECGLOB","SUB",LEVEL)
+ S ^TMP($J,"WVECGLOB","LEVEL")=LEVEL-1
+
+ Q
+
+
+TOP
+
+ K ^TMP($J,"WVECGLOB","SUB")
+ S ^TMP($J,"WVECGLOB","LEVEL")=0
+
+ Q
 
 EXPLORE(ROOT) ;
 
@@ -51,7 +113,6 @@ HELP ;
  ;===============================================================
 
 LIST(ROOT,LEVEL,SUB,LIST) ;
-
  N CURRENT
  N BASE
  N CHILD
