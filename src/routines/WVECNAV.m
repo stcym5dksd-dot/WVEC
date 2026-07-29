@@ -64,22 +64,36 @@ LIST(PROVIDER,LIST,COUNT)
 
  QUIT
 
-DISPLAY(TITLE,LIST,COUNT)
+DISPLAY(TITLE,LIST,COUNT) ;
 
  NEW I
 
- WRITE # 
- WRITE "========================================",!
- WRITE " ",TITLE,!
- WRITE "========================================",!!
+ WRITE #                              ; Clear screen
 
- IF COUNT=0 WRITE "<Empty>",! QUIT
+ WRITE "==========================================",!
+ WRITE "     WorldVistA Engineering Console",!
+ WRITE "==========================================",!!
+ WRITE "Navigator : ",TITLE,!
+
+ WRITE "------------------------------------------",!
+
+ IF COUNT=0 DO  QUIT
+ . WRITE "<No Items>",!
+ . WRITE "------------------------------------------",!
+ . WRITE !
+ . WRITE "Commands: Q Quit   ? Help",!
+ . WRITE !
 
  FOR I=1:1:COUNT DO
  . WRITE $J(I,3),". ",LIST(I),!
 
- QUIT
+ WRITE !
+ WRITE "------------------------------------------",!
+ WRITE "Items: ",COUNT,!
+ WRITE "Commands: Number  Q  ?  U  T",!
+ WRITE !
 
+ QUIT
 
 COMMAND(PROVIDER,DONE,CMD,LIST,COUNT)
 
