@@ -1,131 +1,31 @@
-WVECGLOB ; WorldVistA Engineering Console Global Provider
- ;;3.1;WORLDVISTA ENGINEERING CONSOLE;;
+WVECGLOB ; WorldVistA Global Explorer
+ ;;5.0;WORLDVISTA ENGINEERING CONSOLE;;
 
  ;===============================================================
- ; Component     : Global Provider
- ; MVC Role      : Model / Provider
+ ; Published Entry Points
+ ;===============================================================
  ;
- ; Purpose:
- ;   Populate the WVEC workspace with the contents of the
- ;   current global node.
+ ; EXPLORE(ROOT)
+ ; HELP()
  ;
- ; Notes:
- ;   - Never writes to the terminal.
- ;   - Never reads keyboard input.
- ;   - All workspace updates go through WVECWS.
+ ;===============================================================
+ ; Internal Implementation
  ;===============================================================
 
-INIT ;
- D OPEN^WVECTREE("^DIC")
- D SETSTATE^WVECWS("PAGE",1)
- D SETSTATE^WVECWS("PAGESIZE",25)
- D LIST
- Q
+EXPLORE(ROOT) ;
 
-REFRESH ;
- D LIST
- Q
-LIST ;
- N REF,SUB
- N COUNT
- N NODE
- N TYPE
- N VALUE
+ WRITE !!
+ WRITE "Global Explorer",!
+ WRITE "Root: ",ROOT,!
 
- D CLEARLIST^WVECWS
+ QUIT
 
- S REF=$$CURRENT^WVECTREE()
 
- D SETTITLE^WVECWS("WVEC Global Browser")
- D SETSUB^WVECWS("Globals")
- D SETSTATUS^WVECWS("Current: "_REF)
- D SETCOMMANDS^WVECWS("N P U T Q")
+HELP ;
 
- S SUB=""
- S COUNT=0
+ WRITE !!
+ WRITE "Global Explorer",!
+ WRITE "---------------",!
+ WRITE "EXPLORE(ROOT)",!
 
- F  S SUB=$O(@REF@(SUB)) Q:SUB=""  D
- . S COUNT=COUNT+1
- . S NODE=$$CHILD^WVECREF(REF,SUB)
- . S TYPE=$D(@NODE)
- . S VALUE=$G(@NODE)
- . D ADDITEM^WVECWS(COUNT,SUB,VALUE,TYPE,NODE)
-
- D SETSTATE^WVECWS("COUNT",COUNT)
-
- Q
-NEXT ;
- N PAGE,SIZE,COUNT
-
- S PAGE=$$GETSTATE^WVECWS("PAGE")
- I PAGE<1 S PAGE=1
-
- S SIZE=$$GETSTATE^WVECWS("PAGESIZE")
- I SIZE<1 S SIZE=25
-
- S COUNT=$$GETSTATE^WVECWS("COUNT")
-
- I PAGE*SIZE<COUNT D
- . D SETSTATE^WVECWS("PAGE",PAGE+1)
-
- Q
-
-PREV ;
- N PAGE
-
- S PAGE=$$GETSTATE^WVECWS("PAGE")
-
- I PAGE>1 D
- . D SETSTATE^WVECWS("PAGE",PAGE-1)
-
- Q
-
-SELECT(NUM) ;
- N ROOT
- N SUB
- N TYPE
-
- S ROOT=$$ROOT^WVECWS()
-
- S SUB=$G(@ROOT@("LIST",NUM,"NAME"))
- Q:SUB=""
-
- S TYPE=$G(@ROOT@("LIST",NUM,"TYPE"))
-
- ; TYPE=1 means data node only (no descendants)
- I TYPE=1 Q
-
- D OPENNODE^WVECTREE(SUB)
-
- D SETSTATE^WVECWS("PAGE",1)
-
- D LIST
-
- Q
-
-UP ;
- D POP^WVECTREE
-
- D SETSTATE^WVECWS("PAGE",1)
-
- D LIST
-
- Q
-
-TOP ;
- D TOP^WVECTREE
-
- D SETSTATE^WVECWS("PAGE",1)
-
- D LIST
-
- Q
-
-TEST ;
- D INIT
- D SHOW^WVECDSP
- Q
-
- ;===============================================================
- ; End of WVECGLOB
- ;===============================================================
+ QUIT
