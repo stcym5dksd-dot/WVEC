@@ -13,91 +13,74 @@ WVECGLOB ; WorldVistA Global Explorer
  ; Provider Interface
  ;===============================================================
 
-INIT(ROOT) ;
+INIT(CTX) ;
 
- S ^TMP($J,"WVECGLOB","ROOT")=ROOT
- S ^TMP($J,"WVECGLOB","LEVEL")=0
- K ^TMP($J,"WVECGLOB","SUB")
+ S CTX("LEVEL")=0
+ K CTX("SUB")
 
  Q
 
+TITLE(CTX)
 
-TITLE()
+ N ROOT
+ N LEVEL
+ N SUB
+ N I
 
- NEW ROOT
- NEW LEVEL
- NEW SUB
- NEW I
+ S ROOT=$G(CTX("ROOT"))
+ S LEVEL=+$G(CTX("LEVEL"))
 
- S ROOT=$G(^TMP($J,"WVECGLOB","ROOT"))
- S LEVEL=+$G(^TMP($J,"WVECGLOB","LEVEL"))
-
- F I=1:1:LEVEL S SUB(I)=^TMP($J,"WVECGLOB","SUB",I)
+ F I=1:1:LEVEL S SUB(I)=CTX("SUB",I)
 
  Q $$REF^WVECUTIL(ROOT,LEVEL,.SUB)
 
+SELECT(CTX,VALUE)
 
-SELECT(VALUE)
+ N LEVEL
 
- NEW LEVEL
-
- S LEVEL=+$G(^TMP($J,"WVECGLOB","LEVEL"))
-
+ S LEVEL=+$G(CTX("LEVEL"))
  S LEVEL=LEVEL+1
 
- S ^TMP($J,"WVECGLOB","LEVEL")=LEVEL
- S ^TMP($J,"WVECGLOB","SUB",LEVEL)=VALUE
+ S CTX("LEVEL")=LEVEL
+ S CTX("SUB",LEVEL)=VALUE
 
  Q
 
+UP(CTX)
 
-UP
+ N LEVEL
 
- NEW LEVEL
-
- S LEVEL=+$G(^TMP($J,"WVECGLOB","LEVEL"))
+ S LEVEL=+$G(CTX("LEVEL"))
 
  Q:LEVEL<1
 
- K ^TMP($J,"WVECGLOB","SUB",LEVEL)
- S ^TMP($J,"WVECGLOB","LEVEL")=LEVEL-1
+ K CTX("SUB",LEVEL)
+ S CTX("LEVEL")=LEVEL-1
 
  Q
 
+TOP(CTX)
+ K CTX("SUB")
+ S CTX("LEVEL")=0
 
-TOP
+ Q
 
- K ^TMP($J,"WVECGLOB","SUB")
- S ^TMP($J,"WVECGLOB","LEVEL")=0
+EN ; Menu entry point
+
+ DO EXPLORE("^DIC")
 
  Q
 
 EXPLORE(ROOT) ;
 
- NEW LEVEL
- NEW SUB
- NEW LIST
- NEW SEL
- NEW DONE
+ N CTX
 
- S LEVEL=0
- K SUB
+ S CTX("PROVIDER")="WVECGLOB"
+ S CTX("ROOT")=ROOT
 
- S DONE=0
-
- F  Q:DONE  D
- . D LIST(ROOT,LEVEL,.SUB,.LIST)
- . W !
- . R "Selection (<Enter> quits): ",SEL:300
- . I '$T S DONE=1 Q
- . I SEL="" S DONE=1 Q
- . I '$D(LIST(+SEL)) D  Q
- . . W !,"Invalid selection."
- . . H 1
- . D PUSH(.LEVEL,.SUB,LIST(+SEL))
+ D EXPLORE^WVECNAV(.CTX)
 
  Q
-
 
 HELP ;
 
@@ -112,22 +95,42 @@ HELP ;
  ; Internal Implementation
  ;===============================================================
 
-LIST(ROOT,LEVEL,SUB,LIST) ;
+LIST(CTX,LIST,COUNT) ;
+
+ N ROOT
+ N LEVEL
+ N SUB
+ N I
  N CURRENT
  N BASE
  N CHILD
- N COUNT
 
  K LIST
 
+ S ROOT=$G(CTX("ROOT"))
+ S LEVEL=+$G(CTX("LEVEL"))
+
+ F I=1:1:LEVEL S SUB(I)=CTX("SUB",I)
+
  S CURRENT=$$CURRENT(ROOT,LEVEL,.SUB)
 
+ I CURRENT["(" D
+ . S BASE=$E(CURRENT,1,$L(CURRENT)-1)_","
+ E  D
+ . S BASE=CURRENT_"("
+ S CURRENT=$$CURRENT(ROOT,LEVEL,.SUB)
 
  I CURRENT["(" D
  . S BASE=$E(CURRENT,1,$L(CURRENT)-1)_","
  E  D
  . S BASE=CURRENT_"("
 
+ W !!,"CURRENT = ",CURRENT
+ W !,"BASE    = ",BASE
+ R !,"Press RETURN...",X
+
+ S COUNT=0
+ S CHILD=""
  S COUNT=0
  S CHILD=""
 
@@ -135,8 +138,8 @@ LIST(ROOT,LEVEL,SUB,LIST) ;
  . S COUNT=COUNT+1
  . S LIST(COUNT)=CHILD
  . Q:COUNT=20
- Q
 
+ Q
 
 CURRENT(ROOT,LEVEL,SUB)
 

@@ -1,151 +1,196 @@
 WVECNAV ; WorldVistA Engineering Navigator
- ;;5.1;WORLDVISTA ENGINEERING CONSOLE;;
+ ;;6.0;WORLDVISTA ENGINEERING CONSOLE;;
 
- ;===============================================================
- ; Generic Navigation Engine
- ;===============================================================
+EXPLORE(CTX) ;
 
- ; Provider API
- ;
- ;   INIT(ROOT)
- ;   TITLE()
- ;   LIST(.LIST,.COUNT)
- ;   SELECT(ITEM)
- ;   UP()
- ;   TOP()
- ;
- ;===============================================================
+ N LIST
+ N COUNT
+ N TITLE
+ N CMD
 
-EXPLORE(PROVIDER,ROOT) ;
+ S CTX("PAGE")=1
+ S CTX("PAGESIZE")=$$PAGESIZE
+ S CTX("DONE")=0
 
- NEW DONE
- NEW CMD
- NEW TITLE
- NEW COUNT
- NEW LIST
- NEW PAGE
- NEW PAGESIZE
- DO INIT(PROVIDER,ROOT)
+ D DOINIT(.CTX)
 
- SET PAGE=1
- SET PAGESIZE=$$PAGESIZE
-
- SET DONE=0
- FOR  QUIT:DONE  DO
+ F  Q:CTX("DONE")  D
  . K LIST
- . SET COUNT=0
- . DO LIST(PROVIDER,.LIST,.COUNT)
- . SET TITLE=$$TITLE(PROVIDER)
- . DO DISPLAY(TITLE,.LIST,COUNT,PAGE,PAGESIZE)
- . READ !,"Selection (? for help): ",CMD:300
- . IF '$TEST SET DONE=1 QUIT
- . SET CMD=$$UP(CMD)
- . DO COMMAND(PROVIDER,.DONE,CMD,.LIST,COUNT)
+ . S COUNT=0
+ . D DOLIST(.CTX,.LIST,.COUNT)
+ . S TITLE=$$DOTITLE(.CTX)
+ . D DISPLAY(TITLE,.LIST,COUNT,.CTX)
+ . R !,"Selection: ",CMD:300
+ . I '$T S CTX("DONE")=1 Q
+ . S CMD=$$UP(CMD)
+ . D COMMAND(.CTX,CMD,.LIST,COUNT)
 
- QUIT
+ Q
+DOINIT(CTX) ;
+
+ I $D(CTX("PROVIDER"))#2,$L(CTX("PROVIDER")) D
+ . X "D INIT^"_CTX("PROVIDER")_"(.CTX)"
+
+ S:'$D(CTX("PAGE")) CTX("PAGE")=1
+ S:'$D(CTX("PAGESIZE")) CTX("PAGESIZE")=$$PAGESIZE
+ S:'$D(CTX("LEVEL")) CTX("LEVEL")=0
+
+ Q
 
 
-INIT(PROVIDER,ROOT)
+DOLIST(CTX,LIST,COUNT) ;
 
- DO @("INIT^"_PROVIDER_"("""_ROOT_""")")
+ S COUNT=0
+ K LIST
 
- QUIT
+ I '$D(CTX("PROVIDER")) Q
 
-TITLE(PROVIDER)
+ X "D LIST^"_CTX("PROVIDER")_"(.CTX,.LIST,.COUNT)"
 
- NEW X
+ Q
 
- SET X=$TEXT(@("TITLE^"_PROVIDER))
 
- IF X="" QUIT "Navigator"
+DOTITLE(CTX) ;
 
- QUIT $$@("TITLE^"_PROVIDER)
+ N TITLE
 
-LIST(PROVIDER,LIST,COUNT)
+ S TITLE="WVEC Navigator"
 
- DO @("LIST^"_PROVIDER_"(.LIST,.COUNT)")
+ I $D(CTX("PROVIDER")) D
+ . X "S TITLE=$$TITLE^"_CTX("PROVIDER")_"(.CTX)"
 
- QUIT
+ Q TITLE
+NEXT(CTX,COUNT) ;
 
-DISPLAY(TITLE,LIST,COUNT,PAGE,PAGESIZE)
- NEW I
+ N LASTPAGE
+
+ S LASTPAGE=((COUNT-1)\CTX("PAGESIZE"))+1
+ I LASTPAGE<1 S LASTPAGE=1
+
+ I CTX("PAGE")<LASTPAGE S CTX("PAGE")=CTX("PAGE")+1
+
+ Q
+
+
+PREV(CTX) ;
+
+ I CTX("PAGE")>1 S CTX("PAGE")=CTX("PAGE")-1
+
+ Q
+
+
+DOUP(CTX) ;
+
+ I '$D(CTX("PROVIDER")) Q
+
+ X "D UP^"_CTX("PROVIDER")_"(.CTX)"
+
+ S CTX("PAGE")=1
+
+ Q
+
+
+DOTOP(CTX) ;
+
+ I '$D(CTX("PROVIDER")) Q
+
+ X "D TOP^"_CTX("PROVIDER")_"(.CTX)"
+
+ S CTX("PAGE")=1
+
+ Q
+
+
+DOSELECT(CTX,ITEM) ;
+
+ I '$D(CTX("PROVIDER")) Q
+
+ X "D SELECT^"_CTX("PROVIDER")_"(.CTX,.ITEM)"
+
+ Q
+
+COMMAND(CTX,CMD,LIST,COUNT)
+
+ I CMD="" S CTX("DONE")=1 Q
+
+ I CMD="Q" S CTX("DONE")=1 Q
+
+ I CMD="?" D HELP Q
+
+ I CMD="N" D NEXT(.CTX,COUNT) Q
+
+ I CMD="P" D PREV(.CTX) Q
+
+ I CMD="U" D DOUP(.CTX) Q
+
+ I CMD="T" D DOTOP(.CTX) Q
+
+ I CMD?1.N D  Q
+ . N INDEX
+ . S INDEX=((CTX("PAGE")-1)*CTX("PAGESIZE"))+CMD
+ . I INDEX<1!(INDEX>COUNT) Q
+ . D DOSELECT(.CTX,LIST(INDEX))
+ . S CTX("PAGE")=1
+
+ W !,"Unknown command"
+ H 1
+
+ Q
+
+DISPLAY(TITLE,LIST,COUNT,CTX) ;
+
  NEW FIRST
  NEW LAST
- WRITE #                              ; Clear screen
+ NEW I
+ NEW INDEX
 
- WRITE "==========================================",!
- WRITE "     WorldVistA Engineering Console",!
- WRITE "==========================================",!!
- WRITE "Navigator : ",TITLE,!
+ WRITE #
 
- WRITE "------------------------------------------",!
+ WRITE "======================================================",!
+ WRITE " ",TITLE,!
+ WRITE "======================================================",!!
 
  IF COUNT=0 DO  QUIT
- . WRITE "<No Items>",!
- . WRITE "------------------------------------------",!
+ . WRITE "<Empty>",!
  . WRITE !
- . WRITE "Commands: Q Quit   ? Help",!
- . WRITE !
+ . WRITE "Commands: Q  ?",!
 
- S FIRST=((PAGE-1)*PAGESIZE)+1
+ SET FIRST=((CTX("PAGE")-1)*CTX("PAGESIZE"))+1
+ SET LAST=FIRST+CTX("PAGESIZE")-1
+ IF LAST>COUNT SET LAST=COUNT
 
- S LAST=FIRST+PAGESIZE-1
+ FOR INDEX=FIRST:1:LAST DO
+ . WRITE $J((INDEX-FIRST)+1,2),". ",LIST(INDEX),!
 
- IF LAST>COUNT S LAST=COUNT
-
- FOR I=FIRST:1:LAST DO
- . WRITE $J(I,3),". ",LIST(I),!
  WRITE !
- WRITE "------------------------------------------",!
-
- IF COUNT>0 DO
- . WRITE "Showing ",FIRST,"-",LAST," of ",COUNT,!
-
- E  DO
- . WRITE "Showing 0 of 0",!
-
- WRITE "Commands: Number  Q  ?  U  T",!
- WRITE !
- QUIT
-
-COMMAND(PROVIDER,DONE,CMD,LIST,COUNT)
-
- IF CMD="" SET DONE=1 QUIT
-
- IF CMD="Q" SET DONE=1 QUIT
-
- IF CMD="?" DO HELP QUIT
-
- IF CMD="U" DO @("UP^"_PROVIDER) QUIT
-
- IF CMD="T" DO @("TOP^"_PROVIDER) QUIT
-
- IF CMD?1.N DO  QUIT
- . IF CMD<1!(CMD>COUNT) D  QUIT
- . . WRITE !,"Invalid selection."
- . . H 1
- . DO @("SELECT^"_PROVIDER_"("""_LIST(+CMD)_""")")
-
- WRITE !,"Unknown command."
+ WRITE "Showing ",FIRST,"-",LAST," of ",COUNT,!
+ WRITE "Commands: Number  N  P  U  T  Q  ?",!
 
  QUIT
 
 
-HELP
+HELP ;
 
  WRITE !!
  WRITE "WVEC Navigator",!
  WRITE "--------------",!
- WRITE "number  Select item",!
- WRITE "U       Up one level",!
- WRITE "T       Top",!
- WRITE "Q       Quit",!
- WRITE "?       Help",!
+ WRITE "number   Select item",!
+ WRITE "N        Next page",!
+ WRITE "P        Previous page",!
+ WRITE "U        Up one level",!
+ WRITE "T        Top",!
+ WRITE "Q        Quit",!
+ WRITE "?        Help",!
+
+ READ !!,"Press RETURN: ",CMD:30
 
  QUIT
-PAGESIZE() ; Default number of items per page
+
+
+PAGESIZE() ;
 
  QUIT 25
+
 
 UP(X)
 
