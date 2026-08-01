@@ -23,7 +23,7 @@ MENU(LIST,COUNT,TITLE) ;
  N DONE
 
  S RESULT=0
- S PAGE=1
+ S PAGE=1 
  S PAGESIZE=25
  S DONE=0
 
@@ -40,9 +40,6 @@ DISPLAY(LIST,COUNT,TITLE,PAGE,PAGESIZE) ;
  N LAST
  N INDEX
  N NUMBER
-
- W #
-
  W "======================================================",!
  W " ",TITLE,!
  W "======================================================",!!

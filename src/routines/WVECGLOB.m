@@ -94,7 +94,6 @@ HELP ;
  ;===============================================================
  ; Internal Implementation
  ;===============================================================
-
 LIST(CTX,LIST,COUNT) ;
 
  N ROOT
@@ -118,27 +117,13 @@ LIST(CTX,LIST,COUNT) ;
  . S BASE=$E(CURRENT,1,$L(CURRENT)-1)_","
  E  D
  . S BASE=CURRENT_"("
- S CURRENT=$$CURRENT(ROOT,LEVEL,.SUB)
-
- I CURRENT["(" D
- . S BASE=$E(CURRENT,1,$L(CURRENT)-1)_","
- E  D
- . S BASE=CURRENT_"("
-
- W !!,"CURRENT = ",CURRENT
- W !,"BASE    = ",BASE
- R !,"Press RETURN...",X
 
  S COUNT=0
  S CHILD=""
- S COUNT=0
- S CHILD=""
-
  F  S CHILD=$O(@(BASE_""""_CHILD_""""_")")) Q:CHILD=""  D
  . S COUNT=COUNT+1
  . S LIST(COUNT)=CHILD
  . Q:COUNT=20
-
  Q
 
 CURRENT(ROOT,LEVEL,SUB)
