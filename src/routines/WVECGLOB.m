@@ -1,194 +1,141 @@
-WVECGLOB ; WorldVistA Global Explorer
- ;;6.4;WORLDVISTA ENGINEERING CONSOLE;;
+WVECGLOB ; WorldVistA Engineering Console Global Provider
+ ;;3.1;WORLDVISTA ENGINEERING CONSOLE;;
 
  ;===============================================================
- ; Published Entry Points
+ ; Component     : Global Provider
+ ; MVC Role      : Model / Provider
+ ;
+ ; Purpose:
+ ;   Populate the WVEC workspace with the contents of the
+ ;   current global node.
+ ;
+ ; Notes:
+ ;   - Never writes to the terminal.
+ ;   - Never reads keyboard input.
+ ;   - All workspace updates go through WVECWS.
  ;===============================================================
- ;
- ; EXPLORE(ROOT)
- ; HELP()
- ;
- ;===============================================================
- ;===============================================================
- ; Provider Interface
- ;===============================================================
 
-INIT(CTX) ;
-
- S CTX("LEVEL")=0
- K CTX("SUB")
-
+INIT ;
+ D OPEN^WVECTREE("^DIC")
+ D SETSTATE^WVECWS("PAGE",1)
+ D SETSTATE^WVECWS("PAGESIZE",25)
+ D LIST
  Q
 
-TITLE(CTX)
-
- N ROOT
- N LEVEL
- N SUB
- N I
-
- S ROOT=$G(CTX("ROOT"))
- S LEVEL=+$G(CTX("LEVEL"))
-
- F I=1:1:LEVEL S SUB(I)=CTX("SUB",I)
-
- Q $$REF^WVECUTIL(ROOT,LEVEL,.SUB)
-ENTER(VALUE) ; Enter selected item
- ;
- ; Purpose
- ;   Process a selected navigator item.
- ;
- ; External Inputs
- ;   VALUE - Selected line number.
- ;
- ; External Outputs
- ;   Updates provider navigation state.
- ;
- ; Calls
- ;   EXPLORE
- ;   PUSH
- ;
-
- N LEVEL
-
- S LEVEL=+$G(CTX("LEVEL"))
- S LEVEL=LEVEL+1
-
- S CTX("LEVEL")=LEVEL
- S CTX("SUB",LEVEL)=VALUE
-
+REFRESH ;
+ D LIST
  Q
-
-UP(CTX) ; Move Up One Level
- ;
- ; Purpose
- ;   Return to the previous navigation level.
- ;
- ; External Inputs
- ;   CTX - Navigation context.
- ;
- ; External Outputs
- ;   Updated navigation context.
- ;
-
- N LEVEL
-
- S LEVEL=+$G(CTX("LEVEL"))
-
- Q:LEVEL<1
-
- K CTX("SUB",LEVEL)
- S CTX("LEVEL")=LEVEL-1
-
- Q
-
-TOP(CTX)
- K CTX("SUB")
- S CTX("LEVEL")=0
-
- Q
-
-EN ; Menu entry point
-
- DO EXPLORE("^DIC")
-
- Q
-EXPLORE(ROOT) ;
-
- N CTX
- N LIST
+LIST ;
+ N REF,SUB
  N COUNT
- N TITLE
- N RESULT
+ N NODE
+ N TYPE
+ N VALUE
 
- S CTX("ROOT")=ROOT
- D INIT(.CTX)
+ D CLEARLIST^WVECWS
 
- F  D  Q:RESULT=0
- . K LIST
- . S COUNT=0
- . D LIST(.CTX,.LIST,.COUNT)
- . S TITLE=$$TITLE(.CTX)
- . S RESULT=$$MENU^WVECNAV(.LIST,COUNT,TITLE)
- . I RESULT>0 D SELECT(.CTX,LIST(RESULT)) Q
- . I RESULT=-3 D UP(.CTX) Q
- . I RESULT=-4 D TOP(.CTX) Q
- . I RESULT=-5 Q
- . I RESULT=-9 Q
+ S REF=$$CURRENT^WVECTREE()
+
+ D SETTITLE^WVECWS("WVEC Global Browser")
+ D SETSUB^WVECWS("Globals")
+ D SETSTATUS^WVECWS("Current: "_REF)
+ D SETCOMMANDS^WVECWS("N P U T Q")
+
+ S SUB=""
+ S COUNT=0
+
+ F  S SUB=$O(@REF@(SUB)) Q:SUB=""  D
+ . S COUNT=COUNT+1
+ . S NODE=$$CHILD^WVECREF(REF,SUB)
+ . S TYPE=$D(@NODE)
+ . S VALUE=$G(@NODE)
+ . D ADDITEM^WVECWS(COUNT,SUB,VALUE,TYPE,NODE)
+
+ D SETSTATE^WVECWS("COUNT",COUNT)
+
+ Q
+NEXT ;
+ N PAGE,SIZE,COUNT
+
+ S PAGE=$$GETSTATE^WVECWS("PAGE")
+ I PAGE<1 S PAGE=1
+
+ S SIZE=$$GETSTATE^WVECWS("PAGESIZE")
+ I SIZE<1 S SIZE=25
+
+ S COUNT=$$GETSTATE^WVECWS("COUNT")
+
+ I PAGE*SIZE<COUNT D
+ . D SETSTATE^WVECWS("PAGE",PAGE+1)
 
  Q
 
-HELP ;
+PREV ;
+ N PAGE
 
- W !!
- W "WVEC Global Explorer",!
- W "Explore globals one subscript level at a time.",!
+ S PAGE=$$GETSTATE^WVECWS("PAGE")
+
+ I PAGE>1 D
+ . D SETSTATE^WVECWS("PAGE",PAGE-1)
 
  Q
-
-
- ;===============================================================
- ; Internal Implementation
- ;===============================================================
-LIST(CTX,LIST,COUNT) ; Build Global Navigation List
+ENTER(NUM) ; Enter Selected Item
  ;
  ; Purpose
- ;   Build the current list of globals or subscripts.
+ ;   Enter the selected global node.
  ;
  ; External Inputs
- ;   CTX   - Current navigation context.
+ ;   NUM - Selected workspace item number.
  ;
  ; External Outputs
- ;   LIST  - Display list.
- ;   COUNT - Number of items.
+ ;   Updates the current tree position and rebuilds the workspace.
  ;
- ; Internal Variables
- ;   ROOT
- ;   LEVEL
- ;   SUB
- ;
- ; Calls
- ;   CURRENT
- ;   EXPLORE
- ;
+
  N ROOT
- N LEVEL
  N SUB
- N I
- N CURRENT
- N BASE
- N CHILD
+ N TYPE
 
- K LIST
+ S ROOT=$$ROOT^WVECWS()
 
- S ROOT=$G(CTX("ROOT"))
- S LEVEL=+$G(CTX("LEVEL"))
+ S SUB=$G(@ROOT@("LIST",NUM,"NAME"))
+ Q:SUB=""
 
- F I=1:1:LEVEL S SUB(I)=CTX("SUB",I)
+ S TYPE=$G(@ROOT@("LIST",NUM,"TYPE"))
 
- S CURRENT=$$CURRENT(ROOT,LEVEL,.SUB)
+ ; TYPE=1 means data node only (no descendants)
+ I TYPE=1 Q
 
- I CURRENT["(" D
- . S BASE=$E(CURRENT,1,$L(CURRENT)-1)_","
- E  D
- . S BASE=CURRENT_"("
+ D OPENNODE^WVECTREE(SUB)
 
- S COUNT=0
- S CHILD=""
- F  S CHILD=$O(@(BASE_""""_CHILD_""""_")")) Q:CHILD=""  D
- . S COUNT=COUNT+1
- . S LIST(COUNT)=CHILD
- . Q:COUNT=20
- Q
+ D SETSTATE^WVECWS("PAGE",1)
 
-CURRENT(ROOT,LEVEL,SUB)
-
- Q $$REF^WVECUTIL(ROOT,LEVEL,.SUB)
-
-
-PUSH(LEVEL,SUB,VALUE)
-
- S LEVEL=LEVEL+1
- S SUB(LEVEL)=VALUE
+ D LIST
 
  Q
+
+UP ;
+ D POP^WVECTREE
+
+ D SETSTATE^WVECWS("PAGE",1)
+
+ D LIST
+
+ Q
+
+TOP ;
+ D TOP^WVECTREE
+
+ D SETSTATE^WVECWS("PAGE",1)
+
+ D LIST
+
+ Q
+
+TEST ;
+ D INIT
+ D SHOW^WVECDSP
+ Q
+
+ ;===============================================================
+ ; End of WVECGLOB
+ ;===============================================================
