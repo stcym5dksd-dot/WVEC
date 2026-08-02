@@ -33,8 +33,21 @@ TITLE(CTX)
  F I=1:1:LEVEL S SUB(I)=CTX("SUB",I)
 
  Q $$REF^WVECUTIL(ROOT,LEVEL,.SUB)
-
-SELECT(CTX,VALUE)
+ENTER(VALUE) ; Enter selected item
+ ;
+ ; Purpose
+ ;   Process a selected navigator item.
+ ;
+ ; External Inputs
+ ;   VALUE - Selected line number.
+ ;
+ ; External Outputs
+ ;   Updates provider navigation state.
+ ;
+ ; Calls
+ ;   EXPLORE
+ ;   PUSH
+ ;
 
  N LEVEL
 
@@ -46,7 +59,17 @@ SELECT(CTX,VALUE)
 
  Q
 
-UP(CTX)
+UP(CTX) ; Move Up One Level
+ ;
+ ; Purpose
+ ;   Return to the previous navigation level.
+ ;
+ ; External Inputs
+ ;   CTX - Navigation context.
+ ;
+ ; External Outputs
+ ;   Updated navigation context.
+ ;
 
  N LEVEL
 
@@ -107,8 +130,27 @@ HELP ;
  ;===============================================================
  ; Internal Implementation
  ;===============================================================
-LIST(CTX,LIST,COUNT) ;
-
+LIST(CTX,LIST,COUNT) ; Build Global Navigation List
+ ;
+ ; Purpose
+ ;   Build the current list of globals or subscripts.
+ ;
+ ; External Inputs
+ ;   CTX   - Current navigation context.
+ ;
+ ; External Outputs
+ ;   LIST  - Display list.
+ ;   COUNT - Number of items.
+ ;
+ ; Internal Variables
+ ;   ROOT
+ ;   LEVEL
+ ;   SUB
+ ;
+ ; Calls
+ ;   CURRENT
+ ;   EXPLORE
+ ;
  N ROOT
  N LEVEL
  N SUB

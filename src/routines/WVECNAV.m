@@ -1,112 +1,255 @@
-WVECNAV ; WorldVistA Engineering Navigator
- ;;7.0;WORLDVISTA ENGINEERING CONSOLE;;
+WVECNAV ; WorldVistA Engineering Console Navigator
+ ;;5.0;WORLDVISTA ENGINEERING CONSOLE;;
 
- ;===============================================================
- ; Generic Menu Navigator
+ ;=====================================================================
+ ; WVECNAV - Generic Navigation Engine
  ;
- ; Public Entry Point
+ ; PURPOSE
+ ;   Generic navigation framework for all WVEC explorers.
  ;
- ;   RESULT=$$MENU^WVECNAV(.LIST,COUNT,TITLE)
+ ; DESIGN
+ ;   Provider builds the navigation list.
+ ;   Navigator renders the list and processes user commands.
  ;
- ; LIST()  = Local array of items
- ; COUNT   = Number of items
- ; TITLE   = Screen title
+ ; PROVIDER ENTRY POINTS
+ ;   LIST
+ ;   ENTER
+ ;   UP
  ;
- ; Returns
- ;   >0  Selected item number
- ;    0  Quit
- ;   -1  Next page
- ;   -2  Previous page
- ;   -3  Up
- ;   -4  Top
- ;   -5  Refresh
- ;   -9  Help
+ ; NAVIGATOR DATA
+ ;   ^TMP($J,"WVECNAV",0)=Count^Level
+ ;   ^TMP($J,"WVECNAV",n,0)=Display Text
+ ;   ^TMP($J,"WVECNAV",n,1)=Internal Data
  ;
- ; This routine knows NOTHING about globals,
- ; routines, KIDS, FileMan, etc.
- ;===============================================================
+ ; NAVIGATOR STATE
+ ;   ^TMP($J,"WVECNAV","TYPE")
+ ;   ^TMP($J,"WVECNAV","PAGE")
+ ;   ^TMP($J,"WVECNAV","SIZE")
+ ;   ^TMP($J,"WVECNAV","DIRTY")
+ ;   ^TMP($J,"WVECNAV","QUIT")
+ ;
+ ;=====================================================================
 
-MENU(LIST,COUNT,TITLE) ;
+START(TYPE) ; Start Navigator
+ ;
+ ; Purpose
+ ;   Initialize navigator and enter command loop.
+ ;
+ ; External Inputs
+ ;   TYPE - Provider type
+ ;     GLOB
+ ;     RTN
+ ;     KIDS
+ ;     FM
+ ;
+ ; External Outputs
+ ;   None
+ ;
+ ; Calls
+ ;   INIT
+ ;   BUILD
+ ;   RENDER
+ ;   READ
+ ;   EXEC
+ ;
+ D INIT(TYPE)
 
- N PAGE
- N PAGESIZE
- N FIRST
- N LAST
- N LASTPAGE
- N INDEX
- N DISP
- N CMD
- N RESULT
-
- S PAGE=1
- S PAGESIZE=25
- S RESULT=""
- F  D  Q:RESULT'=""
- . W #
- . W "======================================================",!
- . W " ",$G(TITLE,"Navigator"),!
- . W "======================================================",!!
- . I COUNT=0 D  Q
- . . W "<Empty>",!!
- . . W "Q Quit   R Refresh",!!
- . . R "Selection: ",CMD:300
- . . S CMD=$$UP(CMD)
- . . I CMD="Q" S RESULT=0 Q
- . . I CMD="R" S RESULT=-5 Q
- . S LASTPAGE=((COUNT-1)\PAGESIZE)+1
- . S FIRST=((PAGE-1)*PAGESIZE)+1
- . S LAST=FIRST+PAGESIZE-1
- . I LAST>COUNT S LAST=COUNT
- . F INDEX=FIRST:1:LAST D
- . . S DISP=(INDEX-FIRST)+1
- . . W $J(DISP,2),". ",LIST(INDEX),!
- . W !
- . W "Showing ",FIRST,"-",LAST," of ",COUNT,!
- . W "Commands: Number  N  P  U  T  R  Q  ?",!!
- . R "Selection: ",CMD:300
- . I '$T S RESULT=0 Q
- . S CMD=$$UP(CMD)
- . I CMD="" S RESULT=0 Q
- . I CMD="Q" S RESULT=0 Q
- . I CMD="R" S RESULT=-5 Q
- . I CMD="U" S RESULT=-3 Q
- . I CMD="T" S RESULT=-4 Q
- . I CMD="N" D  Q
- . . I PAGE<LASTPAGE S PAGE=PAGE+1
- . . E  W !,"Already on last page." H 3
- . I CMD="?" D HELP Q
- . I CMD="P" D  Q
- . . I PAGE>1 S PAGE=PAGE-1
- . . E  W !,"Already on first page." H 3
- . I CMD?1.N D  Q
- . . N SEL
- . . S SEL=((PAGE-1)*PAGESIZE)+CMD
- . . I SEL<1!(SEL>COUNT) D  Q
- . . . W !,"Invalid selection." H 3
- . . S RESULT=SEL
- . W !,"Unknown command." H 3
- Q RESULT
-
-
-HELP ;
-
- W !!
- W "WVEC Navigator",!
- W "--------------",!
- W "Number   Select item",!
- W "N        Next page",!
- W "P        Previous page",!
- W "U        Up one level",!
- W "T        Top level",!
- W "R        Refresh",!
- W "Q        Quit",!
-
- N X
- R !!,"Press RETURN: ",X:30
+ F  Q:$$QUIT()  D
+ . I $$DIRTY() D BUILD
+ . D RENDER
+ . D READ
+ . D EXEC
 
  Q
 
+INIT(TYPE) ; Initialize Navigator
+ ;
+ ; Purpose
+ ;   Initialize navigator state.
+ ;
+ ; External Inputs
+ ;   TYPE - Provider type.
+ ;
+ ; External Outputs
+ ;   Initializes ^TMP($J,"WVECNAV")
+ ;
+ K ^TMP($J,"WVECNAV")
 
-UP(X)
+ S ^TMP($J,"WVECNAV","TYPE")=TYPE
+ S ^TMP($J,"WVECNAV","PAGE")=1
+ S ^TMP($J,"WVECNAV","SIZE")=20
+ S ^TMP($J,"WVECNAV","DIRTY")=1
+ S ^TMP($J,"WVECNAV","QUIT")=0
 
- Q $TR($G(X),"abcdefghijklmnopqrstuvwxyz","ABCDEFGHIJKLMNOPQRSTUVWXYZ")
+ Q
+
+BUILD ; Build Navigation List
+ ;
+ ; Purpose
+ ;   Call active provider.
+ ;
+ ; External Outputs
+ ;   ^TMP($J,"WVECNAV",...)
+ ;
+ K ^TMP($J,"WVECNAV",0)
+
+ D @$$TYPE()
+
+ D SETDIRTY(0)
+
+ Q
+
+RENDER ; Render Current Page
+ ;
+ ; Purpose
+ ;   Display one page.
+ ;
+ N PAGE,SIZE
+ N FIRST,LAST
+ N I
+
+ S PAGE=$$PAGE()
+ S SIZE=$$SIZE()
+
+ S FIRST=((PAGE-1)*SIZE)+1
+ S LAST=FIRST+SIZE-1
+
+ W @IOF
+ W !
+ W "WVEC Navigator"
+ W !
+
+ F I=FIRST:1:LAST Q:'$D(^TMP($J,"WVECNAV",I,0))  D
+ . W !,$J(I,3),") ",^TMP($J,"WVECNAV",I,0)
+
+ W !!
+ W "N Next   P Prev   T Top   U Up   R Refresh   Q Quit"
+
+ Q
+
+READ ; Read Command
+ ;
+ ; Purpose
+ ;   Read navigator command.
+ ;
+ R !!,"Select: ",^TMP($J,"WVECNAV","CMD"):300
+
+ Q
+
+EXEC ; Execute Command
+ ;
+ ; Purpose
+ ;   Execute user command.
+ ;
+ N CMD
+
+ S CMD=$$UP^XLFSTR($G(^TMP($J,"WVECNAV","CMD")))
+
+ I CMD="Q" S ^TMP($J,"WVECNAV","QUIT")=1 Q
+ I CMD="N" D NEXT Q
+ I CMD="P" D PREV Q
+ I CMD="T" D TOP Q
+ I CMD="U" D UP Q
+ I CMD="R" D REFRESH Q
+
+ I CMD?1.N D ENTER(+CMD)
+
+ Q
+
+NEXT ; Next Page
+ D SETPAGE($$PAGE()+1)
+ Q
+
+PREV ; Previous Page
+ I $$PAGE()>1 D SETPAGE($$PAGE()-1)
+ Q
+
+TOP ; First Page
+ D SETPAGE(1)
+ Q
+
+REFRESH ; Refresh Current List
+ D SETDIRTY(1)
+ Q
+
+UP ; Move Up One Level
+ ;
+ ; Purpose
+ ;   Dispatch UP request to provider.
+ ;
+ N TYPE
+
+ S TYPE=$$TYPE()
+
+ I TYPE="GLOB" D UP^WVECGLOB Q
+ I TYPE="RTN" D UP^WVECRTN Q
+ I TYPE="KIDS" D UP^WVECKIDS Q
+ I TYPE="FM" D UP^WVECFM Q
+
+ D SETDIRTY(1)
+
+ Q
+
+ENTER(NUMBER) ; Enter Selected Item
+ ;
+ ; Purpose
+ ;   Dispatch selected item to provider.
+ ;
+ ; External Inputs
+ ;   NUMBER - Display line selected.
+ ;
+ N TYPE
+
+ S TYPE=$$TYPE()
+
+ I TYPE="GLOB" D ENTER^WVECGLOB(NUMBER) G ENTERX
+ I TYPE="RTN" D ENTER^WVECRTN(NUMBER) G ENTERX
+ I TYPE="KIDS" D ENTER^WVECKIDS(NUMBER) G ENTERX
+ I TYPE="FM" D ENTER^WVECFM(NUMBER)
+
+ENTERX ;
+ D SETDIRTY(1)
+
+ Q
+
+QUIT() ; Return Quit Flag
+ Q +$G(^TMP($J,"WVECNAV","QUIT"))
+
+DIRTY() ; Return Dirty Flag
+ Q +$G(^TMP($J,"WVECNAV","DIRTY"))
+
+SETDIRTY(VALUE) ; Set Dirty Flag
+ S ^TMP($J,"WVECNAV","DIRTY")=+VALUE
+ Q
+
+TYPE() ; Return Provider Type
+ Q $G(^TMP($J,"WVECNAV","TYPE"))
+
+PAGE() ; Return Current Page
+ Q +$G(^TMP($J,"WVECNAV","PAGE"))
+
+SETPAGE(PAGE) ; Set Current Page
+ S ^TMP($J,"WVECNAV","PAGE")=+PAGE
+ Q
+
+SIZE() ; Return Page Size
+ Q +$G(^TMP($J,"WVECNAV","SIZE"))
+
+COUNT() ; Return Item Count
+ Q +$P($G(^TMP($J,"WVECNAV",0)),U)
+
+GLOB ; Global Provider
+ D LIST^WVECGLOB
+ Q
+
+RTN ; Routine Provider
+ D LIST^WVECRTN
+ Q
+
+KIDS ; KIDS Provider
+ D LIST^WVECKIDS
+ Q
+
+FM ; FileMan Provider
+ D LIST^WVECFM
+ Q
