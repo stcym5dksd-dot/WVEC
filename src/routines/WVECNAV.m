@@ -46,6 +46,15 @@ BUILD ; Build Navigation Workspace
  Q
 TYPE() ; Return Provider Type
  Q $G(^TMP($J,"WVECNAV","TYPE"))
+PAGE() ; Return Current Page
+ Q +$G(^TMP($J,"WVECNAV","PAGE"))
+
+SETPAGE(PAGE) ; Set Current Page
+ S ^TMP($J,"WVECNAV","PAGE")=+PAGE
+ Q
+
+SIZE() ; Return Page Size
+ Q +$G(^TMP($J,"WVECNAV","SIZE"))
 
 RENDER ; Render Current Workspace
  ;
@@ -54,20 +63,16 @@ RENDER ; Render Current Workspace
  ;
 
  N COUNT
- N PAGE
- N SIZE
+ N CURPAGE
+ N PGSIZE
  N FIRST
  N LAST
- N I
-
  S COUNT=$$COUNT^WVECWS()
+ S CURPAGE=$$PAGE()
+ S PGSIZE=$$SIZE()
 
- S PAGE=1
- S SIZE=20
-
- S FIRST=((PAGE-1)*SIZE)+1
- S LAST=FIRST+SIZE-1
-
+ S FIRST=((CURPAGE-1)*PGSIZE)+1
+ S LAST=FIRST+PGSIZE-1
  W @IOF
  W !
  W "WVEC Navigator"
@@ -105,8 +110,13 @@ EXEC ; Execute Command
  . S ^TMP($J,"WVECNAV","QUIT")=1
  I CMD="R" D  Q
  . D SETDIRTY(1)
+ I CMD="N" D NEXT Q
  Q
 
+NEXT ; Next Page
+ D SETPAGE($$PAGE()+1)
+ D SETDIRTY(1)
+ Q
 QUIT() ;
  Q +$G(^TMP($J,"WVECNAV","QUIT"))
 
