@@ -47,15 +47,49 @@ BUILD ; Build Navigation Workspace
 TYPE() ; Return Provider Type
  Q $G(^TMP($J,"WVECNAV","TYPE"))
 
-RENDER ;
+RENDER ; Render Current Workspace
+ ;
+ ; Purpose
+ ;   Display one page from the workspace.
+ ;
+
+ N COUNT
+ N PAGE
+ N SIZE
+ N FIRST
+ N LAST
+ N I
+
+ S COUNT=$$COUNT^WVECWS()
+
+ S PAGE=1
+ S SIZE=20
+
+ S FIRST=((PAGE-1)*SIZE)+1
+ S LAST=FIRST+SIZE-1
+
+ W @IOF
+ W !
+ W "WVEC Navigator"
+ W !
+
+ F I=FIRST:1:LAST Q:I>COUNT  D
+ . W !,$J(I,3),") ",$$DISPLAY^WVECWS(I)
+
+ W !!
+ W "N Next   P Prev   T Top   U Up   R Refresh   Q Quit"
 
  Q
 
+READ ; Read Command
+ ;
+ ; Purpose
+ ;   Read one navigator command.
+ ;
 
-READ ;
+ R !!,"Select: ",^TMP($J,"WVECNAV","CMD"):300
 
  Q
-
 
 EXEC ;
 
