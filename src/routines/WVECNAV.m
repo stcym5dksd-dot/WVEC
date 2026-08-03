@@ -91,10 +91,20 @@ READ ; Read Command
 
  Q
 
-EXEC ;
+EXEC ; Execute Command
+ ;
+ ; Purpose
+ ;   Execute one navigator command.
+ ;
+
+ N CMD
+
+ S CMD=$$UP^XLFSTR($G(^TMP($J,"WVECNAV","CMD")))
+
+ I CMD="Q" D  Q
+ . S ^TMP($J,"WVECNAV","QUIT")=1
 
  Q
-
 
 QUIT() ;
  Q +$G(^TMP($J,"WVECNAV","QUIT"))
