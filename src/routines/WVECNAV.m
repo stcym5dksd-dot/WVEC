@@ -30,10 +30,22 @@ INIT(TYPE) ;
  Q
 
 
-BUILD ;
+BUILD ; Build Navigation Workspace
+ ;
+ ; Purpose
+ ;   Ask the active provider to build the workspace.
+ ;
+
+ I $$TYPE()="GLOB" D GLOB
+ I $$TYPE()="RTN" D RTN
+ I $$TYPE()="KIDS" D KIDS
+ I $$TYPE()="FM" D FM
+
+ D SETDIRTY(0)
 
  Q
-
+TYPE() ; Return Provider Type
+ Q $G(^TMP($J,"WVECNAV","TYPE"))
 
 RENDER ;
 
@@ -60,4 +72,19 @@ DIRTY() ;
 
 SETDIRTY(VALUE) ;
  S ^TMP($J,"WVECNAV","DIRTY")=+VALUE
+ Q
+GLOB ; Global Provider
+ D INIT^WVECGLOB
+ Q
+
+RTN ; Routine Provider
+ D LIST^WVECRTN
+ Q
+
+KIDS ; KIDS Provider
+ D LIST^WVECKIDS
+ Q
+
+FM ; FileMan Provider
+ D LIST^WVECFM
  Q
