@@ -112,6 +112,7 @@ EXEC ; Execute Command
  . D SETDIRTY(1)
  I CMD="N" D NEXT Q
  I CMD="P" D PREV Q
+ I CMD="T" D TOP Q
  Q
 
 NEXT ; Next Page
@@ -122,6 +123,10 @@ PREV ; Previous Page
  I $$PAGE()>1 D
  . D SETPAGE($$PAGE()-1)
  . D SETDIRTY(1)
+ Q
+TOP ; First Page
+ D SETPAGE(1)
+ D SETDIRTY(1)
  Q
 QUIT() ;
  Q +$G(^TMP($J,"WVECNAV","QUIT"))
