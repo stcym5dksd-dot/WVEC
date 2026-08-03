@@ -103,7 +103,8 @@ EXEC ; Execute Command
 
  I CMD="Q" D  Q
  . S ^TMP($J,"WVECNAV","QUIT")=1
-
+ I CMD="R" D  Q
+ . D SETDIRTY(1)
  Q
 
 QUIT() ;
