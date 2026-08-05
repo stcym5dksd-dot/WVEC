@@ -14,12 +14,14 @@ WVECGLOB ; WorldVistA Engineering Console Global Provider
  ;   - Never reads keyboard input.
  ;   - All workspace updates go through WVECWS.
  ;===============================================================
-INIT ;
- D OPEN^WVECTREE("^DIC")
+INIT ; Initialize Explorer
+ ;
+ N ROOT
 
- D SETSTATE^WVECWS("PAGE",1)
- D SETSTATE^WVECWS("PAGESIZE",25)
- D LIST
+ S ROOT=$$SELECT^WVECROOT()
+ I ROOT="" Q
+
+ D OPEN^WVECTREE(ROOT)
 
  Q
 
@@ -124,7 +126,25 @@ TEST ;
  D INIT
  D SHOW^WVECDSP
  Q
+SETROOT(ROOT) ; Set Explorer Root
+ ;
+ I ROOT="" Q
+ D SETSTATE^WVECWS("ROOT",ROOT)
+ Q
+ROOT() ; Return Explorer Root
+ ;
+ Q $$ROOT^WVECTREE()
 
+HEADER ; Display Global Explorer Header
+ ;
+ ; Purpose
+ ;   Display the provider-specific header for the
+ ;   Global Explorer.
+ ;
+ W @IOF
+ W ?22,"WVEC Global Explorer",!
+ W "Location : ",$$BREAD^WVECTREE(),!!
+ Q
  ;===============================================================
  ; End of WVECGLOB
  ;===============================================================

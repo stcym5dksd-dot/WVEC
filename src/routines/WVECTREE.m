@@ -106,6 +106,26 @@ PATH() ;
 
  Q $$FORMAT^WVECREF($$ROOTNAME(),.P,LVL)
 
+BREAD() ; Return breadcrumb string
+ ;
+ N LVL,I,S
+
+ S S=$$ROOT()
+
+ S LVL=$$LEVEL()
+ I LVL=0 Q S
+
+ F I=1:1:LVL D
+ . S S=S_" > "_$$DISPLAY(^TMP($J,"WVEC","TREE","PATH",I))
+
+ Q S
+
+DISPLAY(X) ;
+ ; Display one path component.
+ ;
+ I X'="",+X=X Q X
+ Q """"_X_""""
+
 SHOW ;
  W !
  W "Root    : ",$$ROOT(),!

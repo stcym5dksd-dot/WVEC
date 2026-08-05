@@ -50,34 +50,61 @@ SETPAGE(PAGE) ; Set Current Page
 
 SIZE() ; Return Page Size
  Q +$G(^TMP($J,"WVECNAV","SIZE"))
-
 RENDER ; Render Current Workspace
  ;
  ; Purpose
  ;   Display one page from the workspace.
  ;
-
  N COUNT
  N CURPAGE
  N PGSIZE
  N FIRST
  N LAST
+ N I
+ N TOTALPAGES
+
+ D TRACE^WVECDBG("RENDER","ENTER")
+
  S COUNT=$$COUNT^WVECWS()
  S CURPAGE=$$PAGE()
  S PGSIZE=$$SIZE()
 
  S FIRST=((CURPAGE-1)*PGSIZE)+1
  S LAST=FIRST+PGSIZE-1
- W @IOF
- W !
- W "WVEC Navigator"
+
+ S TOTALPAGES=COUNT\PGSIZE
+ I COUNT#PGSIZE S TOTALPAGES=TOTALPAGES+1
+ I TOTALPAGES<1 S TOTALPAGES=1
+
+ ;
+ ; Provider owns the screen header
+ ;
+ D HEADER^WVECPROV($$TYPE())
+
+ D TRACE^WVECDBG("RENDER","HEADER COMPLETE")
+
+ ;
+ ; Generic navigator status
+ ;
+ W "Items    : ",COUNT,"        Page : ",CURPAGE," of ",TOTALPAGES
+ W !!
+ W "------------------------------------------------------------"
  W !
 
+ ;
+ ; Display current page
+ ;
  F I=FIRST:1:LAST Q:I>COUNT  D
  . W !,$J(I,3),") ",$$DISPLAY^WVECWS(I)
 
+ D TRACE^WVECDBG("RENDER","LIST COMPLETE")
+
  W !!
+ W "------------------------------------------------------------"
+ W !
  W "N Next   P Prev   T Top   U Up   R Refresh   Q Quit"
+
+ D TRACE^WVECDBG("RENDER","EXIT")
 
  Q
 
