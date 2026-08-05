@@ -14,12 +14,13 @@ WVECGLOB ; WorldVistA Engineering Console Global Provider
  ;   - Never reads keyboard input.
  ;   - All workspace updates go through WVECWS.
  ;===============================================================
-
 INIT ;
  D OPEN^WVECTREE("^DIC")
+
  D SETSTATE^WVECWS("PAGE",1)
  D SETSTATE^WVECWS("PAGESIZE",25)
  D LIST
+
  Q
 
 REFRESH ;
@@ -35,7 +36,6 @@ LIST ;
  D CLEARLIST^WVECWS
 
  S REF=$$CURRENT^WVECTREE()
-
  D SETTITLE^WVECWS("WVEC Global Browser")
  D SETSUB^WVECWS("Globals")
  D SETSTATUS^WVECWS("Current: "_REF)
@@ -54,6 +54,16 @@ LIST ;
  D SETSTATE^WVECWS("COUNT",COUNT)
 
  Q
+UP ; Up One Level
+ D POP^WVECTREE
+ D LIST
+ Q
+
+TOP ; Return To Top
+ D TOP^WVECTREE
+ D LIST
+ Q
+
 NEXT ;
  N PAGE,SIZE,COUNT
 
@@ -77,58 +87,37 @@ PREV ;
 
  I PAGE>1 D
  . D SETSTATE^WVECWS("PAGE",PAGE-1)
-
  Q
-ENTER(NUM) ; Enter Selected Item
- ;
- ; Purpose
- ;   Enter the selected global node.
- ;
- ; External Inputs
- ;   NUM - Selected workspace item number.
- ;
- ; External Outputs
- ;   Updates the current tree position and rebuilds the workspace.
- ;
+SELECT(NUM) ; Validate and open selected node
 
- N ROOT
+ ; Returns
+ ;   1 = Node opened
+ ;   0 = No action
+ ;
  N SUB
  N TYPE
 
- S ROOT=$$ROOT^WVECWS()
-
- S SUB=$G(@ROOT@("LIST",NUM,"NAME"))
- Q:SUB=""
-
- S TYPE=$G(@ROOT@("LIST",NUM,"TYPE"))
-
- ; TYPE=1 means data node only (no descendants)
- I TYPE=1 Q
+ S SUB=$G(^TMP($J,"WVEC","LIST",NUM,"NAME"))
+ S TYPE=$G(^TMP($J,"WVEC","LIST",NUM,"TYPE"))
+ S ^TMPXX($J,"NUM")=NUM
+ S ^TMPXX($J,"SUB")=SUB
+ S ^TMPXX($J,"TYPE")=TYPE
+ S ^TMPXX($J,"DATA")=$G(^TMP($J,"WVEC","LIST",NUM,"DATA"))
+ I SUB="" Q 0
+ I TYPE=1 Q 0
 
  D OPENNODE^WVECTREE(SUB)
 
- D SETSTATE^WVECWS("PAGE",1)
+ Q 1
 
- D LIST
-
+OPEN(NUM) ; Open Selected Item
+ D ENTER(NUM)
  Q
-
-UP ;
- D POP^WVECTREE
-
+ENTER(NUM) ; Enter Selected Item
+ ;
+ I '$$SELECT(NUM) Q
  D SETSTATE^WVECWS("PAGE",1)
-
  D LIST
-
- Q
-
-TOP ;
- D TOP^WVECTREE
-
- D SETSTATE^WVECWS("PAGE",1)
-
- D LIST
-
  Q
 
 TEST ;

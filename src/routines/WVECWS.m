@@ -83,6 +83,40 @@ ADDITEM(NUM,NAME,DESC,TYPE,DATA) ;
 
 COUNT() ;
  Q +$G(^TMP($J,"WVEC","COUNT"))
+DISPLAY(NUM) ;
+ Q $G(^TMP($J,"WVEC","LIST",NUM,"NAME"))
+
+DESC(NUM) ;
+ ;
+ ; Purpose
+ ;   Return item description.
+ ;
+ ; External Inputs
+ ;   NUM - Display item number.
+ ;
+ Q $G(^TMP($J,"WVEC","LIST",NUM,"DESC"))
+
+
+TYPE(NUM) ;
+ ;
+ ; Purpose
+ ;   Return item type.
+ ;
+ ; External Inputs
+ ;   NUM - Display item number.
+ ;
+ Q $G(^TMP($J,"WVEC","LIST",NUM,"TYPE"))
+
+
+DATA(NUM) ;
+ ;
+ ; Purpose
+ ;   Return internal data for a list item.
+ ;
+ ; External Inputs
+ ;   NUM - Display item number.
+ ;
+ Q $G(^TMP($J,"WVEC","LIST",NUM,"DATA"))
 
 ;===============================================================
 ; State API

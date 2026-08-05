@@ -7,6 +7,8 @@ WVECNAV ; WorldVistA Engineering Console Navigator
 
 START(TYPE) ;
  D INIT(TYPE)
+ ; ===== TEMPORARY EXPERIMENT =====
+ D INIT^WVECGLOB
 
  F  Q:$$QUIT()  D
  . I $$DIRTY() D BUILD
@@ -18,7 +20,6 @@ START(TYPE) ;
 
 
 INIT(TYPE) ;
-
  K ^TMP($J,"WVECNAV")
 
  S ^TMP($J,"WVECNAV","TYPE")=TYPE
@@ -26,24 +27,20 @@ INIT(TYPE) ;
  S ^TMP($J,"WVECNAV","SIZE")=20
  S ^TMP($J,"WVECNAV","DIRTY")=1
  S ^TMP($J,"WVECNAV","QUIT")=0
-
+ D INIT^WVECPROV(TYPE)
  Q
-
-
 BUILD ; Build Navigation Workspace
  ;
  ; Purpose
  ;   Ask the active provider to build the workspace.
  ;
 
- I $$TYPE()="GLOB" D GLOB
- I $$TYPE()="RTN" D RTN
- I $$TYPE()="KIDS" D KIDS
- I $$TYPE()="FM" D FM
+ D BUILD^WVECPROV($$TYPE())
 
  D SETDIRTY(0)
 
  Q
+
 TYPE() ; Return Provider Type
  Q $G(^TMP($J,"WVECNAV","TYPE"))
 PAGE() ; Return Current Page
@@ -113,6 +110,8 @@ EXEC ; Execute Command
  I CMD="N" D NEXT Q
  I CMD="P" D PREV Q
  I CMD="T" D TOP Q
+ I CMD="U" D UP Q
+ I CMD?1.N D ENTER(+CMD) Q
  Q
 
 NEXT ; Next Page
@@ -124,10 +123,31 @@ PREV ; Previous Page
  . D SETPAGE($$PAGE()-1)
  . D SETDIRTY(1)
  Q
-TOP ; First Page
- D SETPAGE(1)
+TOP ; Top Level
+
+ D TOP^WVECPROV($$TYPE())
+
  D SETDIRTY(1)
+
  Q
+UP ; Up One Level
+
+ D UP^WVECPROV($$TYPE())
+
+ D SETDIRTY(1)
+
+ Q
+
+ENTER(NUMBER) ; Enter Selected Item
+ S ^TMPXX($J,"NAV","TYPE")=$$TYPE()
+ S ^TMPXX($J,"NAV","NUMBER")=NUMBER
+ S ^TMPXX($J,"NAV","BEFORE")=1
+ D OPEN^WVECPROV($$TYPE(),NUMBER)
+ S ^TMPXX($J,"NAV","AFTER")=1
+ D SETDIRTY(1)
+
+ Q
+
 QUIT() ;
  Q +$G(^TMP($J,"WVECNAV","QUIT"))
 

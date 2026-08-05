@@ -1,64 +1,94 @@
 WVECPROV ; WorldVistA Provider Dispatcher
- ;;3.0;WORLDVISTA ENGINEERING CONSOLE;;
+ ;;4.0;WORLDVISTA ENGINEERING CONSOLE;;
 
  ;===============================================================
  ; Generic Provider Dispatcher
  ;
- ; All browser engines call this routine instead of calling
- ; provider routines directly.
+ ; Purpose
+ ;   Hide all provider-specific knowledge from WVECNAV.
+ ;
+ ; Navigator calls only WVECPROV.
+ ; WVECPROV dispatches to the active provider.
  ;===============================================================
 
-INIT(PROVIDER) ;
+INIT(PROVIDER) ; Initialize Provider
 
  I PROVIDER="WVECGLOB" D INIT^WVECGLOB Q
+ I PROVIDER="WVECRTN" D INIT^WVECRTN Q
+ I PROVIDER="WVECKIDS" D INIT^WVECKIDS Q
+ I PROVIDER="WVECFM" D INIT^WVECFM Q
 
- W !,"Unknown provider: ",PROVIDER
+ D UNKNOWN(PROVIDER)
+
+ Q
+
+BUILD(PROVIDER) ; Build Workspace
+
+ I PROVIDER="WVECGLOB" D LIST^WVECGLOB Q
+ I PROVIDER="WVECRTN" D BUILD^WVECRTN Q
+ I PROVIDER="WVECKIDS" D BUILD^WVECKIDS Q
+ I PROVIDER="WVECFM" D BUILD^WVECFM Q
+
+ D UNKNOWN(PROVIDER)
+
+ Q
+
+OPEN(PROVIDER,NUMBER) ; Open Selected Item
+ S ^TMPXX($J,"PROV","PROVIDER")=PROVIDER
+ S ^TMPXX($J,"PROV","NUMBER")=NUMBER
+ S ^TMPXX($J,"PROV","BEFORE")=1
+
+ I PROVIDER="WVECGLOB" D  Q
+ . S ^TMPXX($J,"PROV","CALL")=1
+ . D OPEN^WVECGLOB(NUMBER)
+ . S ^TMPXX($J,"PROV","RETURN")=1
+ I PROVIDER="WVECRTN" D OPEN^WVECRTN(NUMBER) Q
+ I PROVIDER="WVECKIDS" D OPEN^WVECKIDS(NUMBER) Q
+ I PROVIDER="WVECFM" D OPEN^WVECFM(NUMBER) Q
+
+ D UNKNOWN(PROVIDER)
+ S ^TMPXX($J,"PROV","AFTER")=1
  Q
 
 
-LIST(PROVIDER) ;
-
- I PROVIDER="WVECGLOB" D BUILD^WVECGLOB Q
-
- W !,"Unknown provider: ",PROVIDER
- Q
-
-
-OPEN(PROVIDER,NUMBER) ;
-
- I PROVIDER="WVECGLOB" D SELECT^WVECGLOB(NUMBER) Q
-
- W !,"Unknown provider: ",PROVIDER
- Q
-
-
-UP(PROVIDER) ;
+UP(PROVIDER) ; Up One Level
 
  I PROVIDER="WVECGLOB" D UP^WVECGLOB Q
+ I PROVIDER="WVECRTN" D UP^WVECRTN Q
+ I PROVIDER="WVECKIDS" D UP^WVECKIDS Q
+ I PROVIDER="WVECFM" D UP^WVECFM Q
 
- W !,"Unknown provider: ",PROVIDER
+ D UNKNOWN(PROVIDER)
+
  Q
 
 
-TOP(PROVIDER) ;
+TOP(PROVIDER) ; Return To Top
 
  I PROVIDER="WVECGLOB" D TOP^WVECGLOB Q
+ I PROVIDER="WVECRTN" D TOP^WVECRTN Q
+ I PROVIDER="WVECKIDS" D TOP^WVECKIDS Q
+ I PROVIDER="WVECFM" D TOP^WVECFM Q
 
- W !,"Unknown provider: ",PROVIDER
+ D UNKNOWN(PROVIDER)
+
  Q
 
 
-NAME() ;
- Q "WVEC Provider Dispatcher"
+REFRESH(PROVIDER) ; Refresh Workspace
 
-VERSION() ;
- Q "3.0"
+ I PROVIDER="WVECGLOB" D REFRESH^WVECGLOB Q
+ I PROVIDER="WVECRTN" D REFRESH^WVECRTN Q
+ I PROVIDER="WVECKIDS" D REFRESH^WVECKIDS Q
+ I PROVIDER="WVECFM" D REFRESH^WVECFM Q
 
-TEST ;
- W !,"Dispatcher OK"
- D INIT("WVECGLOB")
+ D UNKNOWN(PROVIDER)
+
  Q
 
- ;===============================================================
- ; End WVECPROV
- ;===============================================================
+
+UNKNOWN(PROVIDER)
+
+ W !,"Unknown provider: ",$G(PROVIDER)
+
+ Q
