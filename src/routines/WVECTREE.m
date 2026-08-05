@@ -65,15 +65,17 @@ PUSH(SUB) ;
 
  D UPDATE
  Q
-
 POP ;
  N LVL
 
  S LVL=$$LEVEL()
+ S ^TMPXX($J,"POP","BEFORE")=$$LEVEL()
+
  Q:LVL=0
 
  K ^TMP($J,"WVEC","TREE","PATH",LVL)
  S ^TMP($J,"WVEC","TREE","LEVEL")=LVL-1
+ S ^TMPXX($J,"POP","AFTER")=$$LEVEL()
 
  D UPDATE
  Q

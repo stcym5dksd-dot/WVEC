@@ -7,8 +7,6 @@ WVECNAV ; WorldVistA Engineering Console Navigator
 
 START(TYPE) ;
  D INIT(TYPE)
- ; ===== TEMPORARY EXPERIMENT =====
- D INIT^WVECGLOB
 
  F  Q:$$QUIT()  D
  . I $$DIRTY() D BUILD
