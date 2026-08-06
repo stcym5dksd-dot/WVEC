@@ -50,7 +50,6 @@ do
     case "$ans" in
 
         1)
-export ydb_routines="$HOME/wvbuild/VistA-Source/o/utf8*($HOME/wvbuild/VistA-Source/r) $ydb_dist/libyottadbutil.so"
             "$ydb_dist/mumps" -direct
             ;;
 

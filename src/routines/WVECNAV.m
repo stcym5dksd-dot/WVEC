@@ -102,7 +102,7 @@ RENDER ; Render Current Workspace
  W !!
  W "------------------------------------------------------------"
  W !
- W "N Next   P Prev   T Top   U Up   R Refresh   Q Quit"
+ W "N Next   P Prev   T Top   U Up   I Inspect   R Refresh   Q Quit"
 
  D TRACE^WVECDBG("RENDER","EXIT")
 
@@ -135,7 +135,7 @@ EXEC ; Execute Command
  I CMD="N" D NEXT Q
  I CMD="P" D PREV Q
  I CMD="T" D TOP Q
- I CMD="U" D UP Q
+ I CMD="I" D INSPECT^WVECPROV($$TYPE()) Q 
  I CMD?1.N D ENTER(+CMD) Q
  Q
 

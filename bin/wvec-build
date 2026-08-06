@@ -8,10 +8,10 @@ set -e
 # ------------------------------------------------------------------
 # Ensure YottaDB environment is loaded
 # ------------------------------------------------------------------
-
-if [[ -z "$ydb_dist" ]]; then
-    source /usr/local/lib/yottadb/r206/ydb_env_set
-fi
+#
+# Load the standard WorldVistA environment
+#
+source "$HOME/wvbuild/tools/WorldVistA_Bootstrap_Kit_V1/env/vista_env.sh" || exit 1
 
 WVEC_HOME="$HOME/wvec"
 SRC_DIR="$WVEC_HOME/src/routines"
