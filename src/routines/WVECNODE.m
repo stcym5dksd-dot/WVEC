@@ -23,7 +23,13 @@ SHOW ; Display Current Node
  . R !,"Press RETURN: ",X
 
  S TYPE=$D(@REF)
+
  S VALUE=$G(@REF)
+
+ ; If this is a branch with no data, show the primary (0) node.
+ I VALUE="",TYPE>9 D
+ . S VALUE=$G(@REF@(0))
+
  S LEN=$L(VALUE)
 
  S COUNT=0
@@ -58,7 +64,11 @@ SHOW ; Display Current Node
 
  W !
  W "------------------------------------------------------------",!
- W "Value",!
+ I TYPE>9,VALUE'="" D
+ . W "Primary Record (0 node)",!
+ . W "Reference : ",REF_",0)",!
+
+ I '(TYPE>9&(VALUE'="")) W "Value",!
  W "------------------------------------------------------------",!
 
  I VALUE="" W "<none>",!
