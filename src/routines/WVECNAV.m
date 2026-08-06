@@ -199,3 +199,6 @@ KIDS ; KIDS Provider
 FM ; FileMan Provider
  D LIST^WVECFM
  Q
+M ; M Explorer
+ D INIT^WVECM
+ Q
