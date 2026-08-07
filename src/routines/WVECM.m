@@ -9,27 +9,56 @@ TOP ; Return to top level
  K ^TMP($J,"WVECM")
  D LIST
  Q
-
 LIST ; Build routine list
  ;
- ; Phase 1:
- ; Display a fixed list to prove the provider works.
- ;
+ N X,N
+ N MODE
+
+ S MODE=$G(^TMP($J,"WVECM","MODE"),"ROUTINES")
+
+ I MODE="MENU" D MENU Q
+ I MODE="LABELS" D LABELS Q
  D CLEAR^WVECWS
+ K %ZR
 
- D ADDITEM^WVECWS(1,"DI","","R","DI")
- D ADDITEM^WVECWS(2,"DIC","","R","DIC")
- D ADDITEM^WVECWS(3,"XINDEX","","R","XINDEX")
- D ADDITEM^WVECWS(4,"WVECNAV","","R","WVECNAV")
- D ADDITEM^WVECWS(5,"WVECM","","R","WVECM")
+ D SILENT^%RSEL("*","SRC")
 
- D SETSTATE^WVECWS("COUNT",5)
+ S (N,X)=""
+
+ F  S X=$O(%ZR(X)) Q:X=""  D
+ . S N=N+1
+ . D ADDITEM^WVECWS(N,X,"","R",X)
+
+ D SETSTATE^WVECWS("COUNT",N)
 
  Q
 BUILD ; Build Workspace
  D LIST
  Q
-OPEN(NUMBER)
+OPEN(NUMBER) ; Open Selected Item
+ ;
+ N MODE,ITEM,X
+ ;
+ S MODE=$G(^TMP($J,"WVECM","MODE"),"ROUTINES")
+ S ITEM=$$DISPLAY^WVECWS(NUMBER)
+ ;
+ Q:ITEM=""
+ ;
+ ; ----- Routine List -----
+ I MODE="ROUTINES" D  Q
+ . S ^TMP($J,"WVECM","ROUTINE")=ITEM
+ . S ^TMP($J,"WVECM","MODE")="MENU"
+ . D LIST
+ ;
+ ; ----- Routine Menu -----
+ I MODE="MENU" D  Q
+ . I ITEM="Labels" S ^TMP($J,"WVECM","MODE")="LABELS" D LIST Q
+ . I ITEM="Source" W !!,"Source not implemented yet." R !!,"Press RETURN: ",X D LIST Q
+ . I ITEM="Calls" W !!,"Calls not implemented yet." R !!,"Press RETURN: ",X D LIST Q
+ . I ITEM="Globals" W !!,"Globals not implemented yet." R !!,"Press RETURN: ",X D LIST Q
+ . I ITEM="Variables" W !!,"Variables not implemented yet." R !!,"Press RETURN: ",X D LIST Q
+ . I ITEM="Metrics" W !!,"Metrics not implemented yet." R !!,"Press RETURN: ",X D LIST Q
+ ;
  Q
 
 SELECT(NUMBER)
@@ -41,15 +70,73 @@ UP
 REFRESH
  D LIST
  Q
+HEADER ; Display Header
+ ;
+ N MODE,RTN
+ ;
+ S MODE=$G(^TMP($J,"WVECM","MODE"),"ROUTINES")
+ ;
+ W @IOF
+ W !,"============================================================"
+ W !,"                    WVEC M Explorer"
+ W !,"============================================================"
+ ;
+ I MODE="ROUTINES" D  Q
+ . W !,"Location : Routine List"
+ . W !
+ ;
+ I MODE="MENU" D  Q
+ . S RTN=$G(^TMP($J,"WVECM","ROUTINE"))
+ . W !,"Location : Routine Menu"
+ . W !,"Routine  : ",RTN
+ . W !
+ I MODE="LABELS" D  Q
+ . S RTN=$G(^TMP($J,"WVECM","ROUTINE"))
+ . W !,"Location : Labels"
+ . W !,"Routine  : ",RTN
+ . W !
+ ;
+ W !,"Location : Unknown"
+ Q
 
-HEADER
+MENU ; Build routine menu
 
- W !
- W "============================================================",!
- W "                    WVEC M Explorer",!
- W "============================================================",!
- W !
- W "Location : Routines",!
- W !
+ N RTN
 
+ S RTN=$G(^TMP($J,"WVECM","ROUTINE"))
+
+ D CLEAR^WVECWS
+
+ D ADDITEM^WVECWS(1,"Labels","","M","LABELS")
+ D ADDITEM^WVECWS(2,"Source","","M","SOURCE")
+ D ADDITEM^WVECWS(3,"Calls","","M","CALLS")
+ D ADDITEM^WVECWS(4,"Globals","","M","GLOBALS")
+ D ADDITEM^WVECWS(5,"Variables","","M","VARIABLES")
+ D ADDITEM^WVECWS(6,"Metrics","","M","METRICS")
+
+ D SETSTATE^WVECWS("TITLE","Routine: "_RTN)
+ D SETSTATE^WVECWS("COUNT",6)
+
+ Q
+LABELS ; Build Label List
+ ;
+ N RTN,I,LINE,LAB,CNT
+ ;
+ S RTN=$G(^TMP($J,"WVECM","ROUTINE"))
+ ;
+ D CLEAR^WVECWS
+ ;
+ S CNT=0
+ ;
+ F I=1:1 D  Q:LINE=""
+ . S LINE=$T(+I^@RTN)
+ . Q:LINE=""
+ . S LAB=$P(LINE," ")
+ . Q:LAB=""
+ . S CNT=CNT+1
+ . D ADDITEM^WVECWS(CNT,LAB,"","L","")
+ ;
+ D SETSTATE^WVECWS("TITLE","Labels: "_RTN)
+ D SETSTATE^WVECWS("COUNT",CNT)
+ ;
  Q
