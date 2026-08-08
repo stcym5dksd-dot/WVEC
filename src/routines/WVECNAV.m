@@ -95,8 +95,10 @@ RENDER ; Render Current Workspace
  ; Display current page
  ;
  F I=FIRST:1:LAST Q:I>COUNT  D
- . W !,$J(I,3),") ",$$DISPLAY^WVECWS(I)
-
+ . N X
+ . S X=$$DISPLAY^WVECWS(I)
+ . I $L(X)>70 S X=$E(X,1,67)_"..."
+ . W !,$J(I,3),") ",X
  D TRACE^WVECDBG("RENDER","LIST COMPLETE")
 
  W !!
@@ -135,7 +137,8 @@ EXEC ; Execute Command
  I CMD="N" D NEXT Q
  I CMD="P" D PREV Q
  I CMD="T" D TOP Q
- I CMD="I" D INSPECT^WVECPROV($$TYPE()) Q 
+ I CMD="U" D UP Q
+ I CMD="I" D INSPECT^WVECPROV($$TYPE()) Q
  I CMD?1.N D ENTER(+CMD) Q
  Q
 
