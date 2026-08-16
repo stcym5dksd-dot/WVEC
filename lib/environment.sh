@@ -29,8 +29,7 @@ wvec_init() {
     #
     # Use the WVEC compiled object directory and source directory
     #
-    export ydb_routines="$VISTA_ROOT/o*( $VISTA_ROOT/r ) $ydb_dist/utf8/libyottadbutil.so"
-
+    export ydb_routines="$VISTA_ROOT/o $VISTA_ROOT/r $HOME/WVEC/src/routines"
     #
     # Basic verification
     #
