@@ -1,0 +1,14 @@
+[Unit]
+Description=WVEC KIDS Explorer (ttyd)
+After=network.target
+
+[Service]
+Type=simple
+User=ubuntu
+WorkingDirectory=/home/ubuntu
+ExecStart=/usr/bin/ttyd -p 7682 --writable /usr/local/bin/wvec-kids
+Restart=always
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target
