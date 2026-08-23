@@ -1,3 +1,4 @@
+
 WVECGLOB ; WorldVistA Engineering Console Global Provider
  ;;3.1;WORLDVISTA ENGINEERING CONSOLE;;
 
@@ -16,15 +17,20 @@ WVECGLOB ; WorldVistA Engineering Console Global Provider
  ;===============================================================
 INIT ; Initialize Explorer
  ;
- N ROOT
+ I $G(^TMP($J,"WVEC","WEBSTART")) D  Q
+ . K ^TMP($J,"WVEC","WEBSTART")
+ . D OPEN^WVECTREE("^DIC")
 
+ N ROOT
  S ROOT=$$SELECT^WVECROOT()
  I ROOT="" Q
 
  D OPEN^WVECTREE(ROOT)
 
  Q
-
+INITDIC ; Web startup in ^DIC
+ D OPEN^WVECTREE("^DIC")
+ Q
 REFRESH ;
  D LIST
  Q

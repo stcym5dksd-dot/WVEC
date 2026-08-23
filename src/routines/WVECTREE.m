@@ -42,9 +42,9 @@ OPEN(ROOT) ;
  ; Open a new tree.
  ;
  D INIT
- W !,"OPEN ROOT=",ROOT
+ ;W !,"OPEN ROOT=",ROOT
  S ^TMP($J,"WVEC","TREE","ROOT")=ROOT
- W !,"STORED ROOT=",^TMP($J,"WVEC","TREE","ROOT")
+ ;W !,"STORED ROOT=",^TMP($J,"WVEC","TREE","ROOT")
  S ^TMP($J,"WVEC","TREE","LEVEL")=0
  D UPDATE
  Q
