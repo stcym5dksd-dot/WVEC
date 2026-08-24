@@ -4,6 +4,7 @@
 # Developer launcher remains: ~/WVEC/bin/wvec
 #
 # WorldVistA Extended Engineering Console
+# WVEC-H1: Browser users must never see YDB>
 #
 
 clear
@@ -32,85 +33,17 @@ while true
 do
     clear
 
-    show_dashboard
-
     echo
-    echo "YottaDB : $ydb_dist"
-    echo "Global  : $ydb_gbldir"
+    echo "Starting WVEC..."
     echo
 
-    echo "1) Start YDB"
-    echo "2) Display Environment"
-    echo "3) WVEC Doctor"
-    echo "4) Verify Installation"
-    echo "5) Engineering Workbench (Experimental)"
-    echo "6) Exit"
-    echo
+    "$ydb_dist/mumps" -run WVEC
 
-    read -p "Selection: " ans
+    echo
+    read -p "Restart WVEC? (Y/N): " ans
 
     case "$ans" in
-
-        1)
-            "$ydb_dist/mumps" -direct
-            ;;
-
-        2)
-            clear
-            echo
-            echo "===== Environment ====="
-            echo
-            echo "ydb_dist=$ydb_dist"
-            echo
-            echo "ydb_gbldir=$ydb_gbldir"
-            echo
-            echo "ydb_routines=$ydb_routines"
-            echo
-            read -p "Press ENTER to continue..."
-            ;;
-
-        3)
-            wvec_doctor
-            ;;
-
-        4)
-            clear
-            echo
-            echo "Checking installation..."
-            echo
-
-            [ -f "$HOME/wvbuild/VistA-Source/mumps.dat" ] \
-                && echo "PASS  mumps.dat" \
-                || echo "FAIL  mumps.dat"
-
-            [ -f "$HOME/wvbuild/VistA-Source/gld/vista.gld" ] \
-                && echo "PASS  vista.gld" \
-                || echo "FAIL  vista.gld"
-
-            [ -d "$HOME/wvbuild/VistA-Source/r" ] \
-                && echo "PASS  routines directory" \
-                || echo "FAIL  routines directory"
-
-            echo
-            read -p "Press ENTER to continue..."
-            ;;
-
-        5)
-            wvec_workbench
-            ;;
-
-        6)
-            echo
-            echo "Goodbye."
-            exit 0
-            ;;
-
-        *)
-            echo
-            echo "Invalid selection."
-            sleep 2
-            ;;
-
+        Y|y) ;;
+        *) break ;;
     esac
-
 done
