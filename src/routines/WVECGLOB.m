@@ -16,17 +16,7 @@ WVECGLOB ; WorldVistA Engineering Console Global Provider
  ;   - All workspace updates go through WVECWS.
  ;===============================================================
 INIT ; Initialize Explorer
- ;
- I $G(^TMP($J,"WVEC","WEBSTART")) D  Q
- . K ^TMP($J,"WVEC","WEBSTART")
- . D OPEN^WVECTREE("^DIC")
-
- N ROOT
- S ROOT=$$SELECT^WVECROOT()
- I ROOT="" Q
-
- D OPEN^WVECTREE(ROOT)
-
+ D OPEN^WVECTREE("^DIC")
  Q
 INITDIC ; Web startup in ^DIC
  D OPEN^WVECTREE("^DIC")
@@ -47,11 +37,9 @@ LIST ;
  D SETTITLE^WVECWS("WVEC Global Browser")
  D SETSUB^WVECWS("Globals")
  D SETSTATUS^WVECWS("Current: "_REF)
- D SETCOMMANDS^WVECWS("N P U T Q")
-
+ D SETCOMMANDS^WVECWS("N P U T G Q")
  S SUB=""
  S COUNT=0
-
  F  S SUB=$O(@REF@(SUB)) Q:SUB=""  D
  . S COUNT=COUNT+1
  . S NODE=$$CHILD^WVECREF(REF,SUB)
@@ -116,7 +104,7 @@ SELECT(NUM) ; Validate and open selected node
 
  D OPENNODE^WVECTREE(SUB)
 
- I TYPE=1 D SHOW^WVECNODE
+ ;I TYPE=1 D SHOW^WVECNODE
 
  Q 1
 
@@ -127,7 +115,6 @@ ENTER(NUM) ; Enter Selected Item
  ;
  I '$$SELECT(NUM) Q
  D SETSTATE^WVECWS("PAGE",1)
- D LIST
  Q
 FIND ; Find Immediate Child
  N TEXT,REF,SUB,COUNT,POS,MATCH,PAGE,SIZE
@@ -149,7 +136,20 @@ FIND ; Find Immediate Child
  D SETPAGE^WVECNAV(PAGE)
  Q
  ;
+GOTO ; Go To Global Root
 
+ N ROOT
+
+ S ROOT=$$SELECT^WVECROOT()
+ Q:ROOT=""
+
+ D OPEN^WVECTREE(ROOT)
+
+ D SETSTATE^WVECWS("PAGE",1)
+
+ D LIST
+
+ Q
 TEST ;
  D INIT
  D SHOW^WVECDSP
@@ -162,16 +162,13 @@ SETROOT(ROOT) ; Set Explorer Root
 ROOT() ; Return Explorer Root
  ;
  Q $$ROOT^WVECTREE()
-
 HEADER ; Display Global Explorer Header
- ;
- ; Purpose
- ;   Display the provider-specific header for the
- ;   Global Explorer.
- ;
  W @IOF
- W ?22,"WVEC Global Explorer",!
- W "Location : ",$$BREAD^WVECTREE(),!!
+ W !,"============================================================"
+ W !,"                  Global Explorer"
+ W !,"============================================================"
+ W !
+ W "Location: ",$$BREAD^WVECTREE()
  Q
  ;===============================================================
  ; End of WVECGLOB
