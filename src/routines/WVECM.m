@@ -77,13 +77,12 @@ LIST ; Build display
 BUILD ; Build Workspace
  D LIST
  Q
-
 OPEN(NUMBER) ; Open Selected Item
  ;
- N MODE,ITEM,X
+ N MODE,ITEM,X,RTN,LBL
  ;
  S MODE=$G(^TMP($J,"WVECM","MODE"),"ROUTINES")
- S ITEM=$$DISPLAY^WVECWS(NUMBER)
+ S ITEM=$$DATA^WVECWS(NUMBER)
  ;
  Q:ITEM=""
  ;
@@ -95,12 +94,25 @@ OPEN(NUMBER) ; Open Selected Item
  ;
  ; ----- Routine Menu -----
  I MODE="MENU" D  Q
- . I ITEM="Labels" S ^TMP($J,"WVECM","MODE")="LABELS" D LIST Q
- . I ITEM="Source" S ^TMP($J,"WVECM","LABEL")="" S ^TMP($J,"WVECM","MODE")="SOURCE" D LIST Q
- . I ITEM="Calls" S ^TMP($J,"WVECM","MODE")="CALLS" D LIST Q
- . I ITEM="Globals" S ^TMP($J,"WVECM","MODE")="GLOBALS" D LIST Q
- . I ITEM="Variables" S ^TMP($J,"WVECM","MODE")="VARIABLES" D LIST Q
- . I ITEM="Metrics" S ^TMP($J,"WVECM","MODE")="METRICS" D LIST Q
+ . I ITEM="LABELS" D  Q
+ . . S ^TMP($J,"WVECM","MODE")="LABELS"
+ . . D LIST
+ . I ITEM="SOURCE" D  Q
+ . . S ^TMP($J,"WVECM","LABEL")=""
+ . . S ^TMP($J,"WVECM","MODE")="SOURCE"
+ . . D LIST
+ . I ITEM="CALLS" D  Q
+ . . S ^TMP($J,"WVECM","MODE")="CALLS"
+ . . D LIST
+ . I ITEM="GLOBALS" D  Q
+ . . S ^TMP($J,"WVECM","MODE")="GLOBALS"
+ . . D LIST
+ . I ITEM="VARIABLES" D  Q
+ . . S ^TMP($J,"WVECM","MODE")="VARIABLES"
+ . . D LIST
+ . I ITEM="METRICS" D  Q
+ . . S ^TMP($J,"WVECM","MODE")="METRICS"
+ . . D LIST
  ;
  ; ----- Label List -----
  I MODE="LABELS" D  Q
@@ -108,15 +120,16 @@ OPEN(NUMBER) ; Open Selected Item
  . S ^TMP($J,"WVECM","MODE")="SOURCE"
  . D LIST
  ;
+ ; ----- Calls List -----
  I MODE="CALLS" D  Q
- . N RTN,LBL
  . S RTN=$P(ITEM," ")
  . S LBL=$P(ITEM," ",2,99)
  . Q:RTN=""
  . S ^TMP($J,"WVECM","ROUTINE")=RTN
  . S ^TMP($J,"WVECM","LABEL")=LBL
- . S ^TMP($J,"WVECM","MODE")="MENU"
+ . S ^TMP($J,"WVECM","MODE")="SOURCE"
  . D LIST
+ ;
  Q
 SELECT(NUMBER)
  Q 1
@@ -203,7 +216,6 @@ HEADER ; Display Header
  I MODE="SOURCE" D  Q
  . S RTN=$G(^TMP($J,"WVECM","ROUTINE"))
  . S LABEL=$G(^TMP($J,"WVECM","LABEL"))
- . W !,"Location : Source"
  . W !,"Routine  : ",RTN
  . I LABEL'="" W !,"Label    : ",LABEL
  . W !
@@ -257,8 +269,8 @@ LABELS ; Build Label List
  D TAGLIST^WVECXREF(RTN,.LIST,.CNT)
  ;
  F I=1:1:CNT D
- . D ADDITEM^WVECWS(I,LIST(I),"","L","")
- ;
+ . D ADDITEM^WVECWS(I,LIST(I),"","L",LIST(I)) 
+;
  D SETSTATE^WVECWS("TITLE","Labels: "_RTN)
  D SETSTATE^WVECWS("COUNT",CNT)
  ;
