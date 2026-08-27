@@ -86,7 +86,7 @@ RENDER ; Render Current Workspace
  ;
  ; Generic navigator status
  ;
- W "Items    : ",COUNT,"        Page : ",CURPAGE," of ",TOTALPAGES
+ W "   Items: ",COUNT,"   Page: ",CURPAGE," of ",TOTALPAGES
  W !!
  W "------------------------------------------------------------"
  W !
@@ -98,15 +98,13 @@ RENDER ; Render Current Workspace
  . N X
  . S X=$$DISPLAY^WVECWS(I)
  . I $L(X)>70 S X=$E(X,1,67)_"..."
- . W !,$J(I,3),") ",X
+ . W !,"[",I,"] ",X
  D TRACE^WVECDBG("RENDER","LIST COMPLETE")
 
- W !!
- W "------------------------------------------------------------"
  W !
- W "N Next   P Prev   T Top   U Up   I Inspect   F Find   R Refresh   Q Quit"
+ W !
  D TRACE^WVECDBG("RENDER","EXIT")
-
+ D FOOTER
  Q
 
 READ ; Read Command
@@ -129,14 +127,14 @@ EXEC ; Execute Command
 
  S CMD=$$UP^XLFSTR($G(^TMP($J,"WVECNAV","CMD")))
 
- I CMD="Q" D  Q
- . S ^TMP($J,"WVECNAV","QUIT")=1
+ I CMD="Q"  Q
  I CMD="R" D  Q
  . D SETDIRTY(1)
  I CMD="N" D NEXT Q
  I CMD="P" D PREV Q
  I CMD="T" D TOP Q
  I CMD="U" D UP Q
+ I CMD="G" D GOTO Q
  I CMD="I" D INSPECT^WVECPROV($$TYPE()) Q
  I CMD="F" D FIND^WVECPROV($$TYPE()) Q
  I CMD?1.N D ENTER(+CMD) Q
@@ -175,7 +173,11 @@ ENTER(NUMBER) ; Enter Selected Item
  D SETDIRTY(1)
 
  Q
-
+GOTO ; Go To New Root
+ D GOTO^WVECPROV($$TYPE())
+ D SETPAGE(1)
+ D SETDIRTY(1)
+ Q
 QUIT() ;
  Q +$G(^TMP($J,"WVECNAV","QUIT"))
 
@@ -186,4 +188,24 @@ DIRTY() ;
 
 SETDIRTY(VALUE) ;
  S ^TMP($J,"WVECNAV","DIRTY")=+VALUE
+ Q
+FOOTER ; Display available commands
+ ;
+ N TYPE
+
+ S TYPE=$G(^TMP($J,"WVECNAV","TYPE"))
+
+ I TYPE="WVECM" D  Q
+ . W "N Next  P Prev  T Top  U Up  I Inspect  F Find  R Refresh"
+
+ I TYPE="WVECRTN" D  Q
+ . W "N Next  P Prev  T Top  F Find  R Refresh"
+
+ I TYPE="WVECGLOB" D  Q
+ . W "N Next  P Prev  T Top  U Up  G Global  I Inspect  F Find  R Refresh"
+
+ I TYPE="WVECKIDS" D  Q
+ . W "N Next  P Prev  T Top  U Up  I Inspect  F Find  R Refresh"
+
+ W "N Next  P Prev  T Top  U Up  I Inspect  F Find  R Refresh"
  Q

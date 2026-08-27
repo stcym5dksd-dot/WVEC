@@ -84,8 +84,24 @@ ADDITEM(NUM,NAME,DESC,TYPE,DATA) ;
 COUNT() ;
  Q +$G(^TMP($J,"WVEC","COUNT"))
 DISPLAY(NUM) ;
- Q $G(^TMP($J,"WVEC","LIST",NUM,"NAME"))
+ N NAME,DESC,TYPE,PFX
 
+ S NAME=$G(^TMP($J,"WVEC","LIST",NUM,"NAME"))
+ S DESC=$G(^TMP($J,"WVEC","LIST",NUM,"DESC"))
+ S TYPE=+$G(^TMP($J,"WVEC","LIST",NUM,"TYPE"))
+
+ S PFX=" "
+
+ I TYPE=1 S PFX="[V]"
+ I TYPE=10 S PFX="[G]"
+ I TYPE=11 S PFX="[B]"
+
+ I DESC'="" D
+ . S DESC=$TR(DESC,$C(13,10),"  ")
+ . S DESC=$E(DESC,1,40)
+ . S NAME=NAME_"  "_DESC
+
+ Q PFX_" "_NAME
 DESC(NUM) ;
  ;
  ; Purpose

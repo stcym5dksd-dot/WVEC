@@ -99,7 +99,7 @@ SELECT(NUM) ; Validate and open selected node
  N SUB
  N TYPE
 
- S SUB=$G(^TMP($J,"WVEC","LIST",NUM,"NAME"))
+ S SUB=$P($G(^TMP($J,"WVEC","LIST",NUM,"NAME"))," ")
  S TYPE=$G(^TMP($J,"WVEC","LIST",NUM,"TYPE"))
  S ^TMPXX($J,"NUM")=NUM
  S ^TMPXX($J,"SUB")=SUB
@@ -148,6 +148,17 @@ GOTO ; Go To Global Root
 
  S ROOT=$$SELECT^WVECROOT()
  Q:ROOT=""
+
+ D OPEN^WVECTREE(ROOT)
+
+ D SETSTATE^WVECWS("PAGE",1)
+
+ D LIST
+
+ Q
+JUMP(ROOT) ; Jump directly to specified global root
+ ;
+ I ROOT="" Q
 
  D OPEN^WVECTREE(ROOT)
 

@@ -51,6 +51,7 @@ LIST ; Build display
  I MODE="LABELS" D LABELS Q
  I MODE="SOURCE" D SOURCE Q
  I MODE="CALLS" D CALLS Q
+ I MODE="CALLERS" D CALLERS Q
  I MODE="GLOBALS" D GLOBALS Q
  I MODE="VARIABLES" D VARIABLES Q
  I MODE="METRICS" D METRICS Q
@@ -83,6 +84,7 @@ OPEN(NUMBER) ; Open Selected Item
  ;
  S MODE=$G(^TMP($J,"WVECM","MODE"),"ROUTINES")
  S ITEM=$$DATA^WVECWS(NUMBER)
+ D TRACE^WVECDBG("WVECM OPEN","MODE="_MODE_" ITEM="_ITEM)
  ;
  Q:ITEM=""
  ;
@@ -104,6 +106,9 @@ OPEN(NUMBER) ; Open Selected Item
  . I ITEM="CALLS" D  Q
  . . S ^TMP($J,"WVECM","MODE")="CALLS"
  . . D LIST
+ . I ITEM="CALLERS" D  Q
+ . . S ^TMP($J,"WVECM","MODE")="CALLERS"
+ . . D LIST
  . I ITEM="GLOBALS" D  Q
  . . S ^TMP($J,"WVECM","MODE")="GLOBALS"
  . . D LIST
@@ -123,14 +128,36 @@ OPEN(NUMBER) ; Open Selected Item
  ; ----- Calls List -----
  I MODE="CALLS" D  Q
  . S RTN=$P(ITEM," ")
- . S LBL=$P(ITEM," ",2,99)
  . Q:RTN=""
  . S ^TMP($J,"WVECM","ROUTINE")=RTN
- . S ^TMP($J,"WVECM","LABEL")=LBL
- . S ^TMP($J,"WVECM","MODE")="SOURCE"
+ . K ^TMP($J,"WVECM","LABEL")
+ . S ^TMP($J,"WVECM","MODE")="MENU"
  . D LIST
  ;
- Q
+ ; ----- Callers List -----
+ I MODE="CALLERS" D  Q
+ . S RTN=ITEM
+ . Q:RTN=""
+ . S ^TMP($J,"WVECM","ROUTINE")=RTN
+ . K ^TMP($J,"WVECM","LABEL")
+ . S ^TMP($J,"WVECM","MODE")="MENU"
+ . D LIST
+ ; 
+
+ ; ----- Globals List -----
+ I MODE="GLOBALS" D  Q
+ . W !,"Global inspection not implemented yet." H 2
+ ; ----- Variables List -----
+ I MODE="VARIABLES" D  Q
+ . W !,"Variable inspection not implemented yet." H 2
+ ;
+ ; ----- Metrics List -----
+ I MODE="METRICS" D  Q
+ . W !,"Metrics are informational only." H 2
+ ;
+ ; ----- Source View -----
+ I MODE="SOURCE" Q
+ ;
 SELECT(NUMBER)
  Q 1
 
@@ -145,6 +172,10 @@ UP ; Navigate Up
  . D LIST
  ;
  I MODE="CALLS" D  Q
+ . S ^TMP($J,"WVECM","MODE")="MENU"
+ . D LIST
+ ;
+ I MODE="CALLERS" D  Q
  . S ^TMP($J,"WVECM","MODE")="MENU"
  . D LIST
  ;
@@ -213,6 +244,11 @@ HEADER ; Display Header
  . W !,"Routine  : ",RTN
  . W !
  ;
+ I MODE="CALLERS" D  Q
+ . S RTN=$G(^TMP($J,"WVECM","ROUTINE"))
+ . W !,"Location : Callers"
+ . W !,"Routine  : ",RTN
+ . W !
  I MODE="SOURCE" D  Q
  . S RTN=$G(^TMP($J,"WVECM","ROUTINE"))
  . S LABEL=$G(^TMP($J,"WVECM","LABEL"))
@@ -249,12 +285,13 @@ MENU ; Build routine menu
  D ADDITEM^WVECWS(1,"Labels","","M","LABELS")
  D ADDITEM^WVECWS(2,"Source","","M","SOURCE")
  D ADDITEM^WVECWS(3,"Calls","","M","CALLS")
- D ADDITEM^WVECWS(4,"Globals","","M","GLOBALS")
- D ADDITEM^WVECWS(5,"Variables","","M","VARIABLES")
- D ADDITEM^WVECWS(6,"Metrics","","M","METRICS")
+ D ADDITEM^WVECWS(4,"Callers","","M","CALLERS")
+ D ADDITEM^WVECWS(5,"Globals","","M","GLOBALS")
+ D ADDITEM^WVECWS(6,"Variables","","M","VARIABLES")
+ D ADDITEM^WVECWS(7,"Metrics","","M","METRICS")
  ;
  D SETSTATE^WVECWS("TITLE","Routine: "_RTN)
- D SETSTATE^WVECWS("COUNT",6)
+ D SETSTATE^WVECWS("COUNT",7)
  ;
  Q
 LABELS ; Build Label List
@@ -290,6 +327,24 @@ CALLS ; Build Call List
  . D ADDITEM^WVECWS(I,LIST(I),"","C",LIST(I))
  ;
  D SETSTATE^WVECWS("TITLE","Calls: "_RTN)
+ D SETSTATE^WVECWS("COUNT",CNT)
+ ;
+ Q
+CALLERS ; Build Caller List
+ ;
+ N RTN,I,CNT,LIST
+ ;
+ S RTN=$G(^TMP($J,"WVECM","ROUTINE"))
+ ;
+ D CLEAR^WVECWS
+ ;
+ S CNT=0
+ D CALLERLIST^WVECXREF(RTN,.LIST,.CNT)
+ ;
+ F I=1:1:CNT D
+ . D ADDITEM^WVECWS(I,LIST(I),"","C",LIST(I))
+ ;
+ D SETSTATE^WVECWS("TITLE","Callers: "_RTN)
  D SETSTATE^WVECWS("COUNT",CNT)
  ;
  Q
@@ -343,7 +398,7 @@ METRICS ; Build Metrics List
  ;
  D ADDITEM^WVECWS(1,"Size: "_$P(MET,U,1),"","M","")
  D ADDITEM^WVECWS(2,"Lines: "_$P(MET,U,2),"","M","")
- D ADDITEM^WVECWS(3,"Comments: "_$P(MET,U,3),"","M","")
+ D ADDITEM^WVECWS(3,"Comment Characters: "_$P(MET,U,3),"","M","")
  ;
  D SETSTATE^WVECWS("TITLE","Metrics: "_RTN)
  D SETSTATE^WVECWS("COUNT",3)
