@@ -54,6 +54,7 @@ LIST ; Build display
  I MODE="CALLERS" D CALLERS Q
  I MODE="GLOBALS" D GLOBALS Q
  I MODE="VARIABLES" D VARIABLES Q
+ I MODE="VARUSE" D VARUSE Q
  I MODE="METRICS" D METRICS Q
  ;
  D CLEAR^WVECWS
@@ -147,9 +148,11 @@ OPEN(NUMBER) ; Open Selected Item
  ; ----- Globals List -----
  I MODE="GLOBALS" D  Q
  . W !,"Global inspection not implemented yet." H 2
- ; ----- Variables List -----
+; ----- Variables List -----
  I MODE="VARIABLES" D  Q
- . W !,"Variable inspection not implemented yet." H 2
+ . S ^TMP($J,"WVECM","VARIABLE")=ITEM
+ . S ^TMP($J,"WVECM","MODE")="VARUSE"
+ . D LIST
  ;
  ; ----- Metrics List -----
  I MODE="METRICS" D  Q
@@ -158,6 +161,8 @@ OPEN(NUMBER) ; Open Selected Item
  ; ----- Source View -----
  I MODE="SOURCE" Q
  ;
+ ; ----- Variable Usage -----
+ I MODE="VARUSE" Q
 SELECT(NUMBER)
  Q 1
 
@@ -184,6 +189,9 @@ UP ; Navigate Up
  . D LIST
  I MODE="LABELS" D  Q
  . S ^TMP($J,"WVECM","MODE")="MENU"
+ . D LIST
+ I MODE="VARUSE" D  Q
+ . S ^TMP($J,"WVECM","MODE")="VARIABLES"
  . D LIST
  I MODE="VARIABLES" D  Q
  . S ^TMP($J,"WVECM","MODE")="MENU"
@@ -213,7 +221,7 @@ REFRESH
 
 HEADER ; Display Header
  ;
- N MODE,RTN,LABEL
+ N MODE,RTN,LABEL,VAR
  ;
  S MODE=$G(^TMP($J,"WVECM","MODE"),"ROUTINES")
  ;
@@ -264,6 +272,13 @@ HEADER ; Display Header
  I MODE="VARIABLES" D  Q
  . S RTN=$G(^TMP($J,"WVECM","ROUTINE"))
  . W !,"Location : Variables"
+ . W !,"Routine  : ",RTN
+ . W !
+ I MODE="VARUSE" D  Q
+ . S RTN=$G(^TMP($J,"WVECM","ROUTINE"))
+ . S VAR=$G(^TMP($J,"WVECM","VARIABLE"))
+ . W !,"Location : Variable Usage"
+ . W !,"Variable : ",VAR
  . W !,"Routine  : ",RTN
  . W !
  I MODE="METRICS" D  Q
@@ -384,6 +399,49 @@ VARIABLES ; Build Variable List
  D SETSTATE^WVECWS("COUNT",CNT)
  ;
  Q
+VARUSE ; Display Variable Usage
+  ;
+  N RTN,VAR,I,LINE,CNT,TXT
+  ;
+  S RTN=$G(^TMP($J,"WVECM","ROUTINE"))
+  S VAR=$G(^TMP($J,"WVECM","VARIABLE"))
+ ;
+  D CLEAR^WVECWS
+  ;
+  S CNT=0
+  ;
+  F I=1:1 D  Q:LINE=""
+  . S LINE=$T(+I^@RTN)
+  . Q:LINE=""
+ . I $$HASVAR(LINE,VAR) D
+  . . S CNT=CNT+1
+  . . S TXT=I_"  "_LINE
+  . . D ADDITEM^WVECWS(CNT,TXT,"","S",TXT)
+  ;
+  D SETSTATE^WVECWS("TITLE","Variable: "_VAR)
+  D SETSTATE^WVECWS("COUNT",CNT)
+  ;
+  Q
+HASVAR(LINE,VAR) ; Does LINE contain VAR as a variable token?
+ ;
+ N P,LEFT,RIGHT,FOUND
+ S P=0,FOUND=0
+ F  D  Q:P=0!(FOUND)
+ . S P=$F(LINE,VAR,P)
+ . Q:P=0
+ . S LEFT=$E(LINE,P-$L(VAR)-1)
+ . S RIGHT=$E(LINE,P)
+ . I $$NAMECHAR(LEFT) Q
+ . I $$NAMECHAR(RIGHT) Q
+ . S FOUND=1
+ Q FOUND
+ ;
+NAMECHAR(X) ; True if X is part of an M variable name
+ I X="" Q 0
+ I X?1A Q 1
+ I X?1N Q 1
+ I X="%" Q 1
+ Q 0
 METRICS ; Build Metrics List
  ;
  N RTN,MET
