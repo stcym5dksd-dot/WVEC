@@ -1,4 +1,3 @@
-
 WVECGLOB ; WorldVistA Engineering Console Global Provider
  ;;3.1;WORLDVISTA ENGINEERING CONSOLE;;
 
@@ -148,6 +147,9 @@ GOTO ; Go To Global Root
 
  S ROOT=$$SELECT^WVECROOT()
  Q:ROOT=""
+
+ ; Auto-close missing right parens
+ F  Q:$L(ROOT,"(")=$L(ROOT,")")  S ROOT=ROOT_")"
 
  D OPEN^WVECTREE(ROOT)
 
